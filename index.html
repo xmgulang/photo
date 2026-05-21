@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AI 智能图片分析 · 深度文字点评</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+:root { --bg: #fff; --text: #1c1c1e; --text-secondary: #6c6c70; --placeholder-bg: #F2F2F7; --card-bg: #F8F8FC; --intro-color: #8e8e93; --photo-height: 46vh; --accent: #E91E63; --accent-light: #FF80AB; --border: #E5E5EA; --font-size: 15px; --shadow-sm: 0 2px 6px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.05); }
+@media (max-width: 768px) { :root { --photo-height: 40vh; --font-size: 14px; } }
+[data-theme="dark"] { --bg: #0e0e10; --text: #ececee; --text-secondary: #9a9aa3; --card-bg: #1C1C1E; --border: #2C2C2E; --placeholder-bg: #1C1C1E; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Helvetica Neue", sans-serif; background: var(--bg); color: var(--text); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; transition: background 0.2s, color 0.2s; }
+.header { flex-shrink: 0; height: 44px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #E91E63, #C2185B); position: relative; padding-top: env(safe-area-inset-top); }
+.header-title { color: #fff; font-size: 16px; font-weight: 600; letter-spacing: 1px; }
+.header-actions { position: absolute; right: 6px; display: flex; align-items: center; gap: 10px; }
+.header-btn { color: #fff; background: rgba(255,255,255,0.2); border: none; font-size: 14px; cursor: pointer; padding: 4px 8px; border-radius: 20px; backdrop-filter: blur(2px); transition: 0.2s; }
+.header-btn:active { background: rgba(255,255,255,0.4); }
+.status-badge { position: absolute; left: 12px; font-size: 11px; padding: 2px 8px; border-radius: 30px; background: rgba(255,255,255,0.2); color: #fff; font-weight: 500; backdrop-filter: blur(2px); }
+.status-badge.online { background: rgba(76,175,80,0.4); }
+.photo-area { width: 100%; height: var(--photo-height); background: var(--placeholder-bg); display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; cursor: pointer; transition: background 0.2s; border-bottom: 1px solid var(--border); }
+.photo-area img { max-width: 94%; max-height: 94%; object-fit: contain; border-radius: 20px; box-shadow: var(--shadow-sm); }
+.placeholder { display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--accent); opacity: 0.7; }
+.placeholder svg { width: 44px; height: 44px; stroke-width: 1.2; }
+.placeholder-text { font-size: 14px; font-weight: 500; }
+.loading { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); padding: 12px 20px; border-radius: 48px; width: auto; }
+.loading.active { display: flex; align-items: center; gap: 10px; }
+.spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
+.loading-text { color: #fff; font-size: 13px; font-weight: 500; letter-spacing: 0.5px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.text-area { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px 14px; scrollbar-width: thin; }
+.analysis-result { display: none; animation: fadeInUp 0.3s ease; }
+.analysis-result.active { display: block; }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.advice-card { background: var(--card-bg); border-radius: 24px; padding: 18px 16px; margin-bottom: 16px; box-shadow: var(--shadow-sm); border: 0.5px solid var(--border); transition: all 0.2s; }
+.advice-card h3 { font-size: 17px; font-weight: 600; color: var(--accent); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; letter-spacing: -0.2px; border-left: 3px solid var(--accent); padding-left: 10px; }
+.advice-card p { font-size: var(--font-size); line-height: 1.65; color: var(--text); margin-bottom: 8px; white-space: pre-line; }
+.advice-card .quote { font-style: normal; background: rgba(233,30,99,0.05); padding: 10px 12px; border-radius: 18px; margin: 8px 0 0; color: var(--text-secondary); font-size: 0.95em; }
+.tag-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.tag { background: var(--placeholder-bg); padding: 4px 12px; border-radius: 40px; font-size: 12px; color: var(--accent); font-weight: 500; }
+.source-tag { display: inline-block; font-size: 10px; padding: 4px 12px; border-radius: 40px; background: var(--placeholder-bg); color: var(--text-secondary); margin-top: 4px; margin-right: 6px; }
+.source-tag.local { background: rgba(76,175,80,0.12); color: #2E7D32; }
+.source-tag.fusion { background: rgba(233,30,99,0.12); color: #C2185B; }
+.analysis-meta { font-size: 11px; color: var(--intro-color); text-align: center; margin-top: 16px; padding-top: 10px; border-top: 0.5px solid var(--border); letter-spacing: 0.2px; }
+.button-area { flex-shrink: 0; display: flex; justify-content: center; align-items: center; gap: 18px; padding: 12px 0 20px; background: var(--bg); border-top: 0.5px solid var(--border); backdrop-filter: blur(10px); }
+.btn-select { display: flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #E91E63, #D81B60); color: #fff; border: none; padding: 0 24px; height: 40px; border-radius: 40px; font-size: 15px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 6px rgba(233,30,99,0.2); transition: 0.2s; }
+.btn-select:active { transform: scale(0.96); opacity: 0.9; }
+.btn-exit { background: rgba(0,0,0,0.05); border: 0.5px solid var(--border); color: var(--text-secondary); font-size: 14px; padding: 0 18px; height: 40px; border-radius: 40px; cursor: pointer; font-weight: 500; transition: 0.2s; }
+.btn-exit:active { background: rgba(0,0,0,0.1); }
+#fileInput { display: none; }
+.scroll-container { margin-bottom: 20px; background: var(--card-bg); border-radius: 28px; padding: 16px; text-align: center; border: 0.5px solid var(--border); }
+.scroll-track { display: flex; flex-direction: column; gap: 8px; }
+.scroll-item { font-size: 14px; color: var(--intro-color); text-align: center; opacity: 0.7; white-space: normal; word-break: keep-all; }
+.api-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; }
+.api-modal.active { display: flex; }
+.api-content { background: var(--bg); padding: 24px 20px; border-radius: 32px; width: 90%; max-width: 360px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+.api-title { font-size: 18px; font-weight: 700; margin-bottom: 14px; color: var(--text); }
+.api-input, .api-select { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 24px; font-size: 14px; margin-bottom: 12px; background: var(--bg); color: var(--text); outline: none; transition: 0.2s; }
+.api-input:focus, .api-select:focus { border-color: var(--accent); }
+.api-hint { font-size: 12px; color: var(--intro-color); margin-bottom: 14px; line-height: 1.45; }
+.api-buttons { display: flex; gap: 12px; margin-top: 6px; }
+.api-btn { flex: 1; padding: 10px; border: none; border-radius: 40px; font-size: 14px; font-weight: 500; cursor: pointer; transition: 0.2s; }
+.api-btn-primary { background: linear-gradient(135deg, #E91E63, #D81B60); color: #fff; }
+.api-btn-secondary { background: var(--placeholder-bg); color: var(--text-secondary); }
+.api-status { font-size: 12px; margin-top: 12px; padding: 8px; border-radius: 40px; text-align: center; }
+.api-status.ok { background: rgba(76,175,80,0.12); color: #2E7D32; }
+.api-status.err { background: rgba(244,67,54,0.1); color: #D32F2F; }
+</style>
+</head>
+<body>
+<input type="file" id="fileInput" accept="image/*">
+<div class="api-modal" id="apiModal">
+<div class="api-content">
+<div class="api-title">✨ 分析引擎设置</div>
+<div class="api-hint">本地引擎生成深入评语；云端大模型提供文学性摄影点评（需 API Key）。</div>
+<select class="api-select" id="modelSelect">
+<option value="local">🧠 智慧本地引擎（纯文字建议）</option>
+<option value="qwen">☁️ 阿里云 Qwen-VL 摄影大师</option>
+<option value="minimax">☁️ MiniMax 光影评论家</option>
+<option value="zhipu">☁️ 智谱 GLM-4V 美学顾问</option>
+</select>
+<input type="password" class="api-input" id="apiKeyInput" placeholder="输入 API Key（云端模式必填）">
+<div class="api-hint" id="modelHint">本地模式：无需网络，生成深入分析与建议。</div>
+<div class="api-buttons">
+<button class="api-btn api-btn-secondary" id="apiSkip">取消</button>
+<button class="api-btn api-btn-primary" id="apiSave">保存</button>
+</div>
+<div class="api-status" id="apiStatus" style="display:none;"></div>
+</div>
+</div>
+<div class="header">
+<span class="status-badge" id="statusBadge">🟢 本地模式</span>
+<span class="header-title">📸 影像叙事 · 文字品鉴</span>
+<div class="header-actions">
+<button class="header-btn" id="btnFont">Aa</button>
+<button class="header-btn" id="btnTheme">🌙</button>
+<button class="header-btn" id="btnSettings">⚙️</button>
+</div>
+</div>
+<div class="photo-area" id="photoArea">
+<div class="placeholder" id="placeholder">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+<rect x="3" y="3" width="18" height="18" rx="3"/>
+<circle cx="8.5" cy="8.5" r="1.8"/>
+<path d="M21 15l-5-5L5 21"/>
+</svg>
+<span class="placeholder-text">轻触选图或拍照</span>
+</div>
+<img id="photoImg" style="display:none;">
+<div class="loading" id="loading">
+<div class="spinner"></div>
+<div class="loading-text" id="loadingText">AI 正在品读影像...</div>
+</div>
+</div>
+<div class="text-area" id="textArea">
+<div class="scroll-container" id="scrollContainer">
+<div class="scroll-track">
+<div class="scroll-item">🎞️ 上传照片，AI 将输出深度文字解析及美学建议</div>
+<div class="scroll-item">✨ 融合色彩/构图/情绪，生成摄影师的专评</div>
+</div>
+</div>
+<div class="analysis-result" id="analysisResult">
+<div id="analysisDetails"></div>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+<span class="source-tag" id="sourceTag">本地引擎</span>
+</div>
+<div class="analysis-meta" id="analysisMeta"></div>
+</div>
+</div>
+<div class="button-area">
+<button class="btn-select" id="btnSelect">📷 选择照片</button>
+<button class="btn-exit" id="btnExit">退出</button>
+</div>
+<script>
+// DOM 元素
+const fileInput = document.getElementById('fileInput');
+const photoArea = document.getElementById('photoArea');
+const placeholder = document.getElementById('placeholder');
+const photoImg = document.getElementById('photoImg');
+const loadingDiv = document.getElementById('loading');
+const loadingText = document.getElementById('loadingText');
+const scrollContainer = document.getElementById('scrollContainer');
+const analysisResultDiv = document.getElementById('analysisResult');
+const analysisDetails = document.getElementById('analysisDetails');
+const sourceTagSpan = document.getElementById('sourceTag');
+const analysisMetaSpan = document.getElementById('analysisMeta');
+const btnSelect = document.getElementById('btnSelect');
+const btnExit = document.getElementById('btnExit');
+const btnFont = document.getElementById('btnFont');
+const btnTheme = document.getElementById('btnTheme');
+const btnSettings = document.getElementById('btnSettings');
+const apiModal = document.getElementById('apiModal');
+const apiKeyInput = document.getElementById('apiKeyInput');
+const apiSave = document.getElementById('apiSave');
+const apiSkip = document.getElementById('apiSkip');
+const modelSelect = document.getElementById('modelSelect');
+const modelHint = document.getElementById('modelHint');
+const apiStatus = document.getElementById('apiStatus');
+const statusBadge = document.getElementById('statusBadge');
+
+let currentImage = null;
+let fontSizeIndex = 1;
+const fontSizes = ['13px', '15px', '17px'];
+let isDark = false;
+let apiKey = localStorage.getItem('photoai_api_key') || '';
+let currentModel = localStorage.getItem('photoai_model') || 'local';
+
+function init() {
+    modelSelect.value = currentModel;
+    apiKeyInput.value = apiKey;
+    updateStatus();
+    updateModelHint();
+}
+function updateStatus() {
+    if (currentModel === 'local') {
+        statusBadge.textContent = '🟢 本地·智慧引擎';
+        statusBadge.className = 'status-badge online';
+    } else if (apiKey) {
+        statusBadge.textContent = '🔮 ' + getModelName(currentModel) + ' 云端增强';
+        statusBadge.className = 'status-badge online';
+    } else {
+        statusBadge.textContent = '⚠️ 未设置 Key';
+        statusBadge.className = 'status-badge';
+    }
+}
+function getModelName(model) {
+    const names = { qwen: 'Qwen视觉', minimax: 'MiniMax', zhipu: '智谱GLM', local: '本地' };
+    return names[model] || model;
+}
+function updateModelHint() {
+    const hints = { local: '本地模式：无需网络，生成深入分析与建议', qwen: 'Qwen-VL大模型 · 专业摄影点评', minimax: 'MiniMax影像分析 · 情绪解读', zhipu: '智谱GLM-4V · 艺术鉴赏' };
+    modelHint.textContent = hints[modelSelect.value] || hints.local;
+}
+photoArea.addEventListener('click', () => fileInput.click());
+btnSelect.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', handleFileSelect);
+btnExit.addEventListener('click', () => { window.location.href = 'about:blank'; });
+btnFont.addEventListener('click', () => {
+    fontSizeIndex = (fontSizeIndex + 1) % fontSizes.length;
+    document.documentElement.style.setProperty('--font-size', fontSizes[fontSizeIndex]);
+});
+btnTheme.addEventListener('click', () => {
+    isDark = !isDark;
+    document.body.setAttribute('data-theme', isDark ? 'dark' : '');
+    btnTheme.textContent = isDark ? '☀️' : '🌙';
+});
+btnSettings.addEventListener('click', () => {
+    apiModal.classList.add('active');
+    apiStatus.style.display = 'none';
+});
+apiSkip.addEventListener('click', () => apiModal.classList.remove('active'));
+apiSave.addEventListener('click', saveSettings);
+modelSelect.addEventListener('change', updateModelHint);
+function saveSettings() {
+    currentModel = modelSelect.value;
+    apiKey = apiKeyInput.value.trim();
+    localStorage.setItem('photoai_model', currentModel);
+    localStorage.setItem('photoai_api_key', apiKey);
+    if (currentModel !== 'local' && !apiKey) {
+        showStatus('请填写 API Key 以启用云端点评', 'err');
+        return;
+    }
+    showStatus('设置已保存 ✓', 'ok');
+    setTimeout(() => apiModal.classList.remove('active'), 600);
+    updateStatus();
+}
+function showStatus(msg, type) {
+    apiStatus.textContent = msg;
+    apiStatus.className = 'api-status ' + type;
+    apiStatus.style.display = 'block';
+}
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        currentImage = e.target.result;
+        photoImg.src = currentImage;
+        photoImg.style.display = 'block';
+        placeholder.style.display = 'none';
+        scrollContainer.style.display = 'none';
+        analysisResultDiv.classList.remove('active');
+        photoImg.onload = function() { startAnalysis(); };
+    };
+    reader.readAsDataURL(file);
+}
+// 核心分析 — 生成深入、连贯的文字点评，不再分小项
+async function startAnalysis() {
+    loadingDiv.classList.add('active');
+    loadingText.textContent = '✨ 解读画面美学中...';
+    try {
+        const localMetrics = await localAnalysis();
+        if (currentModel === 'local') {
+            const review = buildLocalDeepReview(localMetrics);
+            renderDeepReview(review);
+            sourceTagSpan.textContent = '本地智慧引擎 · 深度评语';
+            sourceTagSpan.className = 'source-tag local';
+            analysisMetaSpan.textContent = `分析时间：${new Date().toLocaleString()} · 本地算法`;
+        } else {
+            loadingText.textContent = '🌟 召唤云端美学大师...';
+            const cloudData = await cloudAnalysisDetailed();
+            let review = null;
+            if (cloudData && cloudData.valid) {
+                review = buildFusionDeepReview(localMetrics, cloudData);
+                sourceTagSpan.textContent = '本地+云端融合 · 深度叙事';
+                sourceTagSpan.className = 'source-tag fusion';
+                analysisMetaSpan.textContent = `分析时间：${new Date().toLocaleString()} · ${getModelName(currentModel)} 联合品鉴`;
+            } else {
+                review = buildLocalDeepReview(localMetrics);
+                sourceTagSpan.textContent = '本地引擎 (云端未响应)';
+                sourceTagSpan.className = 'source-tag local';
+                analysisMetaSpan.textContent = `分析时间：${new Date().toLocaleString()} · 本地回退模式`;
+            }
+            renderDeepReview(review);
+        }
+        analysisResultDiv.classList.add('active');
+    } catch (err) {
+        console.error(err);
+        analysisDetails.innerHTML = `<div class="advice-card"><h3>⚠️ 分析出错</h3><p>请稍后重试或切换模式。</p></div>`;
+        analysisResultDiv.classList.add('active');
+    } finally {
+        loadingDiv.classList.remove('active');
+    }
+}
+// ---------- 本地底层指标（用于分析）----------
+async function localAnalysis() {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = photoImg.naturalWidth;
+    canvas.height = photoImg.naturalHeight;
+    ctx.drawImage(photoImg, 0, 0);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    const totalPixels = canvas.width * canvas.height;
+    const color = analyzeColor(data, totalPixels);
+    const exposure = analyzeExposure(data, totalPixels);
+    const contrast = analyzeContrast(data, totalPixels, canvas.width, canvas.height);
+    const composition = analyzeComposition(canvas.width, canvas.height);
+    const sharpness = analyzeSharpness(data, canvas.width, canvas.height);
+    const totalScore = Math.round((color.score + exposure.score + contrast.score + composition.score + sharpness.score) / 5);
+    return { totalScore, color, exposure, contrast, composition, sharpness, width: canvas.width, height: canvas.height };
+}
+function analyzeColor(data, totalPixels) {
+    let satSum=0;
+    for (let i=0;i<data.length;i+=16) { let r=data[i],g=data[i+1],b=data[i+2];
+        let max=Math.max(r,g,b),min=Math.min(r,g,b); satSum+=max===0?0:(max-min)/max; }
+    let avgSat = satSum / (totalPixels/4);
+    let score = Math.min(100, Math.round(avgSat * 55 + 45));
+    let evaluation = avgSat > 0.55 ? "色彩浓郁饱满，富有感染力" : (avgSat > 0.3 ? "色彩清新自然，还原真实" : "色彩偏淡雅，可适当增强饱和度");
+    let suggestion = avgSat > 0.7 ? "注意控制饱和度避免溢出" : "可尝试提升局部对比增强色彩活力";
+    return { score, evaluation, suggestion };
+}
+function analyzeExposure(data, totalPixels) {
+    let lumaSum=0;
+    for(let i=0;i<data.length;i+=16) lumaSum += data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114;
+    let avgL = lumaSum/(totalPixels/4);
+    let score = Math.min(100, Math.round(100 - Math.abs(avgL-128)*0.35));
+    let evaluation = avgL>160 ? "画面偏亮，高光占比略高" : (avgL<80 ? "氛围偏暗，有阴郁质感" : "曝光准确，细节保留优秀");
+    let suggestion = avgL>180 ? "适当压低高光保留层次" : (avgL<70 ? "提升曝光或后期提亮暗部细节" : "光影平衡极佳");
+    return { score, evaluation, suggestion };
+}
+function analyzeContrast(data, totalPixels, w, h) {
+    let cSum=0, count=0;
+    for(let y=2; y<h-2; y+=4) for(let x=2; x<w-2; x+=4){
+        let idx=(y*w+x)*4; let idx2=(y*w+x+2)*4;
+        let lum1=data[idx]*0.3+data[idx+1]*0.6, lum2=data[idx2]*0.3+data[idx2+1]*0.6;
+        cSum+=Math.abs(lum1-lum2); count++;
+    }
+    let avgC = cSum/(count||1);
+    let score = Math.min(100, Math.round(avgC*1.4+42));
+    let evaluation = avgC<12 ? "画面反差柔和，氛围恬静" : (avgC>28 ? "对比强烈，视觉冲击力强" : "对比度适中，层次细腻");
+    let suggestion = avgC<10 ? "适当强化明暗对比增加立体感" : (avgC>30 ? "注意高光阴影过渡自然" : "对比度恰到好处");
+    return { score, evaluation, suggestion };
+}
+function analyzeComposition(w, h) { 
+    let ratio = w/h;
+    let score = (ratio>1.2 && ratio<1.8) ? 84 : (Math.abs(ratio-1.33)<0.3?82:76);
+    let evaluation = ratio>1.5 ? "横构图利于叙事，空间感舒展" : "竖构图富有纵深感，适合人像";
+    let suggestion = "可尝试三分法或引导线强化视觉焦点";
+    return { score, evaluation, suggestion };
+}
+function analyzeSharpness(data, w, h) {
+    let edge=0;
+    for(let y=2; y<h-2; y+=8) for(let x=2; x<w-2; x+=8){
+        let idx=(y*w+x)*4; let right=((y*w)+(x+2))*4;
+        edge+=Math.abs(data[idx]-data[right])+Math.abs(data[idx+1]-data[right+1]);
+    }
+    let sharpScore = Math.min(100, Math.round(edge/((w*h)/4000) + 45));
+    let evaluation = sharpScore>75 ? "主体锐利，焦点扎实" : "柔焦风格，气氛温润";
+    let suggestion = sharpScore<65 ? "建议适当增加锐度或精确对焦" : "细节保留出色";
+    return { score: sharpScore, evaluation, suggestion };
+}
+// 构建本地深入分析 (自然段落，无机械分项)
+function buildLocalDeepReview(local) {
+    let scoreDesc = "";
+    if (local.totalScore >= 85) scoreDesc = "相当出色，已经具备很好的视觉冲击力。";
+    else if (local.totalScore >= 70) scoreDesc = "基础不错，有潜力成为一张优秀作品。";
+    else if (local.totalScore >= 55) scoreDesc = "中规中矩，但可以通过一些调整变得更好。";
+    else scoreDesc = "有一定记录价值，技术层面还有较大提升空间。";
+    
+    // 优点组合
+    let strengths = [];
+    if (local.color.score >= 70) strengths.push(local.color.evaluation);
+    if (local.exposure.score >= 70) strengths.push(local.exposure.evaluation);
+    if (local.contrast.score >= 70) strengths.push(local.contrast.evaluation);
+    if (local.composition.score >= 70) strengths.push(local.composition.evaluation);
+    if (local.sharpness.score >= 70) strengths.push(local.sharpness.evaluation);
+    let strengthText = strengths.length ? "优点：" + strengths.slice(0,3).join("；") + "。" : "画面整体比较均衡。";
+    
+    // 可优化点
+    let suggestions = [];
+    if (local.color.score < 70) suggestions.push(local.color.suggestion);
+    if (local.exposure.score < 70) suggestions.push(local.exposure.suggestion);
+    if (local.contrast.score < 70) suggestions.push(local.contrast.suggestion);
+    if (local.composition.score < 70) suggestions.push(local.composition.suggestion);
+    if (local.sharpness.score < 70) suggestions.push(local.sharpness.suggestion);
+    let suggestionText = suggestions.length ? "改进方向：" + suggestions.slice(0,3).join("；") + "。" : "当前技术表现均衡，可以尝试更多创意表达。";
+    
+    let finalVerdict = local.totalScore >= 75 ? "值得珍藏的影像记录" : (local.totalScore >= 60 ? "有潜力的习作，稍加打磨会更出彩" : "继续练习，会进步很快");
+    
+    let analysis = `这张照片${scoreDesc} ${strengthText} ${suggestionText}`;
+    return { analysis: analysis, suggestions: suggestionText, finalVerdict: finalVerdict };
+}
+// 云端融合深入点评
+async function cloudAnalysisDetailed() {
+    if (!apiKey && currentModel !== 'local') return null;
+    const prompt = `你是一位资深摄影评论家。请分析这张照片，只返回JSON，格式如下：{"mood": "照片情感氛围(一句话)", "review": "艺术性综合点评(70字左右)", "highlights": ["亮点1","亮点2"], "suggestions": ["改进建议1","改进建议2"], "verdict": "总结陈词(20字内)"}。不要其他解释。`;
+    let resultText = '';
+    try {
+        if (currentModel === 'qwen') {
+            const res = await fetch('https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation', {
+                method: 'POST', headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ model: 'qwen-vl-plus', messages: [{ role: 'user', content: [{ type: 'image', image: currentImage.split(',')[1] }, { type: 'text', text: prompt }] }] })
+            });
+            const data = await res.json(); resultText = data.output?.choices?.[0]?.message?.content || '';
+        } else if (currentModel === 'minimax') {
+            const res = await fetch('https://api.minimax.chat/v1/chat/completions', {
+                method: 'POST', headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ model: 'abab6.5s-chat', messages: [{ role: 'user', content: [{ type: 'image_url', image_url: { url: currentImage } }, { type: 'text', text: prompt }] }] })
+            });
+            const data = await res.json(); resultText = data.choices?.[0]?.message?.content || '';
+        } else if (currentModel === 'zhipu') {
+            const res = await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
+                method: 'POST', headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ model: 'glm-4v', messages: [{ role: 'user', content: [{ type: 'image_url', image_url: { url: currentImage } }, { type: 'text', text: prompt }] }] })
+            });
+            const data = await res.json(); resultText = data.choices?.[0]?.message?.content || '';
+        }
+        if (resultText) {
+            let clean = resultText.replace(/```json/g, '').replace(/```/g, '').trim();
+            let match = clean.match(/\{[\s\S]*\}/);
+            if (match) {
+                let parsed = JSON.parse(match[0]);
+                return { valid: true, mood: parsed.mood, review: parsed.review, highlights: parsed.highlights || [], suggestions: parsed.suggestions || [], verdict: parsed.verdict };
+            }
+        }
+    } catch(e) { console.warn(e); }
+    return null;
+}
+function buildFusionDeepReview(local, cloud) {
+    let analysisPara = `🎭 情绪氛围：${cloud.mood || "画面具有独特气息"}。\n\n📝 艺术点评：${cloud.review || "值得细细品味。"}`;
+    let highlightsStr = (cloud.highlights && cloud.highlights.length) ? cloud.highlights.map(h => `▪️ ${h}`).join('\n') : "▪️ 光影层次自然";
+    let suggestionsStr = (cloud.suggestions && cloud.suggestions.length) ? cloud.suggestions.map(s => `▪️ ${s}`).join('\n') : "▪️ 尝试更独特的视角";
+    let technicalNote = `技术参考：${local.color.evaluation}；${local.exposure.evaluation}；${local.composition.evaluation}。`;
+    let finalAdvice = `✨ 核心建议：\n${suggestionsStr}\n\n${technicalNote}`;
+    return { analysis: analysisPara, suggestions: finalAdvice, finalVerdict: cloud.verdict || (local.totalScore > 70 ? "佳作" : "有潜力") };
+}
+// 渲染：只展示两个卡片：深度分析 + 建议
+function renderDeepReview(review) {
+    let html = `
+        <div class="advice-card"><h3>📷 深入影像分析</h3><p>${review.analysis.replace(/\n/g, '<br>')}</p></div>
+        <div class="advice-card"><h3>💡 创作建议</h3><p>${review.suggestions.replace(/\n/g, '<br>')}</p><div class="tag-group"><span class="tag">🎯 优化方向</span><span class="tag">📸 摄影心得</span></div></div>
+        <div class="advice-card" style="background: rgba(233,30,99,0.05);"><h3>🏷️ 一句话总结</h3><p class="quote">${review.finalVerdict}</p></div>
+    `;
+    analysisDetails.innerHTML = html;
+}
+init();
+</script>
+</body>
+</html>
