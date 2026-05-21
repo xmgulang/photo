@@ -81,7 +81,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Ping
 <div class="api-hint">本地引擎已足够丰富；云端需有效 API Key，支持阿里云百炼(多模态)、MiniMax、智谱。</div>
 <select class="api-select" id="modelSelect">
 <option value="local">🧠 智慧本地引擎（生动多变）</option>
-<option value="qwen36">🌟 阿里云百炼 Qwen3.6-Plus（多模态）</option>
+<option value="bailian">🌟 阿里云百炼 Qwen-VL-Max（视觉模型）</option>
 <option value="minimax">☁️ MiniMax 光影评论家</option>
 <option value="zhipu">☁️ 智谱 GLM-4V 美学顾问</option>
 </select>
@@ -192,11 +192,11 @@ function updateStatus() {
     }
 }
 function getModelName(model) {
-    const names = { qwen36: '百炼Qwen3.6', minimax: 'MiniMax', zhipu: '智谱GLM', local: '本地' };
+    const names = { bailian: '百炼Qwen-VL', minimax: 'MiniMax', zhipu: '智谱GLM', local: '本地' };
     return names[model] || model;
 }
 function updateModelHint() {
-    const hints = { local: '本地模式：无需网络，生成约200字生动点评。云端模式：需要有效 Key。', qwen36: '阿里云百炼 Qwen3.6-Plus (多模态)，需要有效 API Key', minimax: 'MiniMax 需要有效的 API Key', zhipu: '智谱 GLM-4V 需要有效的 API Key' };
+    const hints = { local: '本地模式：无需网络，生成约200字生动点评。云端模式：需要有效 Key。', bailian: '阿里云百炼 Qwen-VL-Max (视觉模型)，需要有效的 DashScope API Key', minimax: 'MiniMax 需要有效的 API Key', zhipu: '智谱 GLM-4V 需要有效的 API Key' };
     modelHint.textContent = hints[modelSelect.value] || hints.local;
 }
 photoArea.addEventListener('click', () => fileInput.click());
@@ -254,18 +254,20 @@ async function testApiConnection() {
     try {
         let url = '';
         let options = {};
-        if (model === 'qwen36') {
+        if (model === 'bailian') {
             url = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation';
+            // 极小1x1透明png的纯base64
+            const testImageBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
             options = {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    model: 'qwen3.6-plus',
+                    model: 'qwen-vl-max',
                     messages: [{
                         role: 'user',
                         content: [
-                            { image: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==' },
-                            { text: '描述这张图' }
+                            { image: testImageBase64 },
+                            { text: '简单描述这张图片' }
                         ]
                     }]
                 })
@@ -295,11 +297,11 @@ async function testApiConnection() {
             const errText = await res.text();
             let errorMsg = `❌ 连接失败 (${res.status})`;
             if (errText.includes('not support model')) {
-                errorMsg = '❌ 当前 API Key 不支持该模型，请检查百炼控制台是否已开通 qwen3.6-plus 模型。';
+                errorMsg = '❌ 当前 API Key 不支持该模型，请检查百炼控制台是否已开通 qwen-vl-max 模型。';
             } else if (errText.includes('Invalid API key')) {
                 errorMsg = '❌ API Key 无效，请检查是否正确复制。';
             } else if (errText.includes('InvalidParameter')) {
-                errorMsg = '❌ 参数错误，请确认模型名称正确。';
+                errorMsg = '❌ 参数错误，请确认百炼控制台已开通视觉模型，并正确设置 API Key。';
             } else {
                 errorMsg += `: ${errText.substring(0, 150)}`;
             }
@@ -497,11 +499,11 @@ async function cloudAnalysisDetailed() {
     const prompt = `你是一位世界顶级的摄影评论家，请对这张照片进行深度、全面、富有文学性的赏析。要求：分析色彩运用、光线质感、构图设计、情感氛围、技术细节，并给出具体的改进建议或创作方向。全文300字左右，语言优美、生动形象，避免枯燥的列表。直接返回一个JSON对象，格式如下：{"review": "完整的点评文本（300字左右）"}。不要有任何额外解释。`;
     let resultText = '';
     try {
-        if (currentModel === 'qwen36') {
+        if (currentModel === 'bailian') {
             const url = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation';
             const imageBase64 = currentImage.split(',')[1];
             const payload = {
-                model: 'qwen3.6-plus',
+                model: 'qwen-vl-max',
                 messages: [{
                     role: 'user',
                     content: [
