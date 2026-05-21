@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -31,13 +32,20 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Ping
 .analysis-result { display: none; animation: fadeInUp 0.3s ease; }
 .analysis-result.active { display: block; }
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-.advice-card { background: var(--card-bg); border-radius: 24px; padding: 18px 16px; margin-bottom: 16px; box-shadow: var(--shadow-sm); border: 0.5px solid var(--border); transition: all 0.2s; }
-.advice-card h3 { font-size: 17px; font-weight: 600; color: var(--accent); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; letter-spacing: -0.2px; border-left: 3px solid var(--accent); padding-left: 10px; }
-.advice-card p { font-size: var(--font-size); line-height: 1.65; color: var(--text); margin-bottom: 8px; white-space: pre-line; }
-.advice-card .quote { font-style: normal; background: rgba(233,30,99,0.05); padding: 10px 12px; border-radius: 18px; margin: 8px 0 0; color: var(--text-secondary); font-size: 0.95em; }
-.tag-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-.tag { background: var(--placeholder-bg); padding: 4px 12px; border-radius: 40px; font-size: 12px; color: var(--accent); font-weight: 500; }
-.source-tag { display: inline-block; font-size: 10px; padding: 4px 12px; border-radius: 40px; background: var(--placeholder-bg); color: var(--text-secondary); margin-top: 4px; margin-right: 6px; }
+/* 统一卡片样式：只显示一段完整文字 */
+.unified-card {
+    background: var(--card-bg);
+    border-radius: 28px;
+    padding: 24px 20px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-sm);
+    border: 0.5px solid var(--border);
+    font-size: var(--font-size);
+    line-height: 1.7;
+    color: var(--text);
+    white-space: pre-line;
+}
+.source-tag { display: inline-block; font-size: 10px; padding: 4px 12px; border-radius: 40px; background: var(--placeholder-bg); color: var(--text-secondary); margin-top: 8px; margin-right: 6px; }
 .source-tag.local { background: rgba(76,175,80,0.12); color: #2E7D32; }
 .source-tag.fusion { background: rgba(233,30,99,0.12); color: #C2185B; }
 .analysis-meta { font-size: 11px; color: var(--intro-color); text-align: center; margin-top: 16px; padding-top: 10px; border-top: 0.5px solid var(--border); letter-spacing: 0.2px; }
@@ -119,7 +127,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Ping
 </div>
 </div>
 <div class="analysis-result" id="analysisResult">
-<div id="analysisDetails"></div>
+<div id="analysisTextContent" class="unified-card"></div>
 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
 <span class="source-tag" id="sourceTag">本地引擎</span>
 </div>
@@ -140,7 +148,7 @@ const loadingDiv = document.getElementById('loading');
 const loadingText = document.getElementById('loadingText');
 const scrollContainer = document.getElementById('scrollContainer');
 const analysisResultDiv = document.getElementById('analysisResult');
-const analysisDetails = document.getElementById('analysisDetails');
+const analysisTextContent = document.getElementById('analysisTextContent');
 const sourceTagSpan = document.getElementById('sourceTag');
 const analysisMetaSpan = document.getElementById('analysisMeta');
 const btnSelect = document.getElementById('btnSelect');
@@ -243,41 +251,39 @@ function handleFileSelect(event) {
     };
     reader.readAsDataURL(file);
 }
-// 核心分析 — 生成深入、连贯的文字点评
+// 核心分析 — 生成一段完整、有深度的文字
 async function startAnalysis() {
     loadingDiv.classList.add('active');
     loadingText.textContent = '✨ 解读画面美学中...';
     try {
         const localMetrics = await localAnalysis();
         if (currentModel === 'local') {
-            const review = buildLocalDeepReview(localMetrics);
-            renderDeepReview(review);
+            const unifiedText = buildLocalUnifiedText(localMetrics);
+            renderUnifiedText(unifiedText);
             sourceTagSpan.textContent = '本地智慧引擎 · 深度评语';
             sourceTagSpan.className = 'source-tag local';
             analysisMetaSpan.textContent = `分析时间：${new Date().toLocaleString()} · 本地算法`;
         } else {
             loadingText.textContent = '🌟 召唤云端美学大师...';
             const cloudData = await cloudAnalysisDetailed();
-            let review = null;
+            let unifiedText = '';
             if (cloudData && cloudData.valid && cloudData.review && cloudData.review.length > 50) {
-                // 云端成功返回丰富点评
-                review = buildFusionRichReview(localMetrics, cloudData);
+                unifiedText = cloudData.review;
                 sourceTagSpan.textContent = '云端美学 · 深度叙事';
                 sourceTagSpan.className = 'source-tag fusion';
                 analysisMetaSpan.textContent = `分析时间：${new Date().toLocaleString()} · ${getModelName(currentModel)} 联合品鉴`;
             } else {
-                // 云端未返回有效内容，降级本地评语
-                review = buildLocalDeepReview(localMetrics);
+                unifiedText = buildLocalUnifiedText(localMetrics);
                 sourceTagSpan.textContent = '本地引擎 (云端未响应)';
                 sourceTagSpan.className = 'source-tag local';
                 analysisMetaSpan.textContent = `分析时间：${new Date().toLocaleString()} · 本地回退模式`;
             }
-            renderDeepReview(review);
+            renderUnifiedText(unifiedText);
         }
         analysisResultDiv.classList.add('active');
     } catch (err) {
         console.error(err);
-        analysisDetails.innerHTML = `<div class="advice-card"><h3>⚠️ 分析出错</h3><p>请稍后重试或切换模式。</p></div>`;
+        analysisTextContent.innerText = "分析出错，请稍后重试或切换模式。";
         analysisResultDiv.classList.add('active');
     } finally {
         loadingDiv.classList.remove('active');
@@ -351,8 +357,8 @@ function analyzeSharpness(data, w, h) {
     let suggestion = sharpScore<65 ? "建议适当增加锐度或精确对焦" : "细节保留出色";
     return { score: sharpScore, evaluation, suggestion };
 }
-// 构建本地深入分析 (自然段落)
-function buildLocalDeepReview(local) {
+// 构建本地统一完整文字段落
+function buildLocalUnifiedText(local) {
     let scoreDesc = "";
     if (local.totalScore >= 85) scoreDesc = "相当出色，已经具备很好的视觉冲击力。";
     else if (local.totalScore >= 70) scoreDesc = "基础不错，有潜力成为一张优秀作品。";
@@ -365,25 +371,24 @@ function buildLocalDeepReview(local) {
     if (local.contrast.score >= 70) strengths.push(local.contrast.evaluation);
     if (local.composition.score >= 70) strengths.push(local.composition.evaluation);
     if (local.sharpness.score >= 70) strengths.push(local.sharpness.evaluation);
-    let strengthText = strengths.length ? "优点：" + strengths.slice(0,3).join("；") + "。" : "画面整体比较均衡。";
+    let strengthText = strengths.length ? strengths.slice(0,3).join("；") + "。" : "整体技术表现均衡。";
     
-    let suggestions = [];
-    if (local.color.score < 70) suggestions.push(local.color.suggestion);
-    if (local.exposure.score < 70) suggestions.push(local.exposure.suggestion);
-    if (local.contrast.score < 70) suggestions.push(local.contrast.suggestion);
-    if (local.composition.score < 70) suggestions.push(local.composition.suggestion);
-    if (local.sharpness.score < 70) suggestions.push(local.sharpness.suggestion);
-    let suggestionText = suggestions.length ? "改进方向：" + suggestions.slice(0,3).join("；") + "。" : "当前技术表现均衡，可以尝试更多创意表达。";
+    let improvements = [];
+    if (local.color.score < 70) improvements.push(local.color.suggestion);
+    if (local.exposure.score < 70) improvements.push(local.exposure.suggestion);
+    if (local.contrast.score < 70) improvements.push(local.contrast.suggestion);
+    if (local.composition.score < 70) improvements.push(local.composition.suggestion);
+    if (local.sharpness.score < 70) improvements.push(local.sharpness.suggestion);
+    let improvementText = improvements.length ? "改进方向：" + improvements.slice(0,3).join("；") + "。" : "继续保持，可以尝试更独特的创意表达。";
     
-    let finalVerdict = local.totalScore >= 75 ? "值得珍藏的影像记录" : (local.totalScore >= 60 ? "有潜力的习作，稍加打磨会更出彩" : "继续练习，会进步很快");
+    let finalVerdict = local.totalScore >= 75 ? "总体而言，这是一张值得珍藏的影像。" : (local.totalScore >= 60 ? "有潜力的习作，稍加打磨会更出彩。" : "继续练习，摄影是时间的艺术，慢慢会进步。");
     
-    let analysis = `这张照片${scoreDesc} ${strengthText} ${suggestionText}`;
-    return { analysis: analysis, suggestions: suggestionText, finalVerdict: finalVerdict };
+    let fullText = `这张照片${scoreDesc} ${strengthText} ${improvementText} ${finalVerdict}`;
+    return fullText;
 }
-// 云端融合深度点评（丰富、全面）
+// 云端增强版 prompt，返回完整段落
 async function cloudAnalysisDetailed() {
     if (!apiKey && currentModel !== 'local') return null;
-    // 增强版prompt，要求生成150-200字的详细摄影点评，涵盖色彩、光线、构图、情感、技术细节和建议
     const prompt = `你是一位世界顶级的摄影评论家，请对这张照片进行深度、全面、富有文学性的赏析。要求：分析色彩运用、光线质感、构图设计、情感氛围、技术细节，并给出具体的改进建议或创作方向。全文150-200字，语言优美、专业且易懂。直接返回一个JSON对象，格式如下：{"review": "完整的点评文本（150-200字）"}。不要有任何额外解释。`;
     let resultText = '';
     try {
@@ -411,43 +416,20 @@ async function cloudAnalysisDetailed() {
             let match = clean.match(/\{[\s\S]*\}/);
             if (match) {
                 let parsed = JSON.parse(match[0]);
-                // 提取review字段，如果不存在则使用整个文本
                 let reviewText = parsed.review || clean;
                 if (reviewText && reviewText.length > 50) {
                     return { valid: true, review: reviewText };
                 }
             } else if (clean.length > 80) {
-                // 如果解析失败但返回了纯文本且足够长，直接使用
                 return { valid: true, review: clean };
             }
         }
     } catch(e) { console.warn(e); }
     return null;
 }
-// 构建融合点评：云端提供详细文本，本地技术数据作为补充建议
-function buildFusionRichReview(local, cloud) {
-    let analysisPara = cloud.review;
-    // 如果云端内容不够长，附加本地分析
-    if (analysisPara.length < 100) {
-        analysisPara += " " + buildLocalDeepReview(local).analysis;
-    }
-    // 从本地指标中提取简洁的技术建议
-    let techTips = [];
-    if (local.color.score < 70) techTips.push(local.color.suggestion);
-    if (local.exposure.score < 70) techTips.push(local.exposure.suggestion);
-    if (local.composition.score < 70) techTips.push(local.composition.suggestion);
-    let suggestionText = techTips.length ? "📷 技术补充建议：" + techTips.slice(0,2).join("；") : "技术细节表现均衡，继续保持。";
-    let finalVerdict = local.totalScore >= 75 ? "值得珍藏的影像" : (local.totalScore >= 60 ? "有潜力的作品" : "继续努力");
-    return { analysis: analysisPara, suggestions: suggestionText, finalVerdict: finalVerdict };
-}
-// 渲染卡片
-function renderDeepReview(review) {
-    let html = `
-        <div class="advice-card"><h3>📷 深入影像分析</h3><p>${review.analysis.replace(/\n/g, '<br>')}</p></div>
-        <div class="advice-card"><h3>💡 创作建议</h3><p>${review.suggestions.replace(/\n/g, '<br>')}</p><div class="tag-group"><span class="tag">🎯 优化方向</span><span class="tag">📸 摄影心得</span></div></div>
-        <div class="advice-card" style="background: rgba(233,30,99,0.05);"><h3>🏷️ 一句话总结</h3><p class="quote">${review.finalVerdict}</p></div>
-    `;
-    analysisDetails.innerHTML = html;
+// 渲染统一文本（只显示一个段落）
+function renderUnifiedText(text) {
+    analysisTextContent.innerText = text;
 }
 init();
 </script>
