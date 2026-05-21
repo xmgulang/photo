@@ -15,8 +15,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Ping
 .header-actions { position: absolute; right: 6px; display: flex; align-items: center; gap: 10px; }
 .header-btn { color: #fff; background: rgba(255,255,255,0.2); border: none; font-size: 14px; cursor: pointer; padding: 4px 8px; border-radius: 20px; backdrop-filter: blur(2px); transition: 0.2s; }
 .header-btn:active { background: rgba(255,255,255,0.4); }
-.status-badge { position: absolute; left: 12px; font-size: 11px; padding: 2px 8px; border-radius: 30px; background: rgba(255,255,255,0.2); color: #fff; font-weight: 500; backdrop-filter: blur(2px); }
-.status-badge.online { background: rgba(76,175,80,0.4); }
+.status-badge { position: absolute; left: 12px; font-size: 11px; padding: 2px 8px; border-radius: 30px; background: rgba(255,255,255,0.2); color: #fff; font-weight: 500; backdrop-filter: blur(2px); transition: background 0.2s; }
+.status-badge.online { background: rgba(76,175,80,0.7); color: #fff; text-shadow: 0 0 2px rgba(0,0,0,0.3); }
 .photo-area { width: 100%; height: var(--photo-height); background: var(--placeholder-bg); display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; cursor: pointer; transition: background 0.2s; border-bottom: 1px solid var(--border); }
 .photo-area img { max-width: 94%; max-height: 94%; object-fit: contain; border-radius: 20px; box-shadow: var(--shadow-sm); }
 .placeholder { display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--accent); opacity: 0.7; }
@@ -180,9 +180,9 @@ function init() {
 function updateStatus() {
     if (currentModel === 'local') {
         statusBadge.textContent = '🟢 本地·生动引擎';
-        statusBadge.className = 'status-badge online';
+        statusBadge.className = 'status-badge online';  // 本地模式也显示绿色（表示可用）
     } else if (apiKey) {
-        statusBadge.textContent = '🔮 百炼云端增强';
+        statusBadge.textContent = '🔮 百炼Qwen3.6-Plus 云端增强';
         statusBadge.className = 'status-badge online';
     } else {
         statusBadge.textContent = '⚠️ 未设置 Key';
@@ -225,11 +225,13 @@ function saveSettings() {
     localStorage.setItem('photoai_api_key', apiKey);
     if (currentModel !== 'local' && !apiKey) {
         showStatus('请填写 API Key 以启用云端点评', 'err');
+        // 状态更新为未设置
+        updateStatus();
         return;
     }
     showStatus('设置已保存 ✓', 'ok');
+    updateStatus();  // 立即更新顶部状态栏颜色
     setTimeout(() => apiModal.classList.remove('active'), 600);
-    updateStatus();
 }
 function showStatus(msg, type) {
     apiStatus.textContent = msg;
@@ -268,12 +270,23 @@ async function testApiConnection() {
         });
         if (res.ok) {
             showStatus('✅ API Key 有效，连接正常（CORS 已解决）', 'ok');
+            // 测试成功后，如果当前选择的模型与保存的一致，且 key 有效，则立即更新顶部状态为绿色
+            if (model === currentModel && key === apiKey) {
+                updateStatus();
+            } else {
+                // 临时提示保存设置以使状态生效
+                showStatus('✅ 连接成功！请点击“保存”以启用云端模式', 'ok');
+            }
         } else {
             const err = await res.json();
             let msg = `❌ 连接失败 (${res.status})`;
             if (err.error?.message) msg += `: ${err.error.message}`;
             if (res.status === 0 || err.code === 'NetworkError') msg += ' 可能是 CORS 未解决或网络问题，请确认 CORS 插件已开启。';
             showStatus(msg, 'err');
+            // 测试失败，确保状态不是绿色（除非已有保存的有效 key）
+            if (currentModel !== 'local' && !apiKey) {
+                statusBadge.className = 'status-badge';
+            }
         }
     } catch (e) {
         showStatus(`❌ 网络错误: ${e.message}。请确认 CORS 插件已开启且 API Key 正确。`, 'err');
