@@ -71,15 +71,15 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Ping
 <div class="api-modal" id="apiModal">
 <div class="api-content">
 <div class="api-title">✨ 分析引擎设置</div>
-<div class="api-hint">本地引擎生成深入评语；云端大模型提供文学性摄影点评（需 API Key）。</div>
+<div class="api-hint">本地引擎生成基础评语；云端大模型提供深度摄影点评（需 API Key）。</div>
 <select class="api-select" id="modelSelect">
-<option value="local">🧠 智慧本地引擎（纯文字建议）</option>
-<option value="qwen">☁️ 阿里云 Qwen-VL 摄影大师</option>
+<option value="local">🧠 智慧本地引擎</option>
+<option value="qwen">☁️ 阿里云 Qwen-VL 专业点评</option>
 <option value="minimax">☁️ MiniMax 光影评论家</option>
 <option value="zhipu">☁️ 智谱 GLM-4V 美学顾问</option>
 </select>
 <input type="password" class="api-input" id="apiKeyInput" placeholder="输入 API Key（云端模式必填）">
-<div class="api-hint" id="modelHint">本地模式：无需网络，生成深入分析与建议。</div>
+<div class="api-hint" id="modelHint">本地模式：无需网络，快速分析。云端模式：生成丰富、全面的摄影赏析。</div>
 <div class="api-buttons">
 <button class="api-btn api-btn-secondary" id="apiSkip">取消</button>
 <button class="api-btn api-btn-primary" id="apiSave">保存</button>
@@ -187,7 +187,7 @@ function getModelName(model) {
     return names[model] || model;
 }
 function updateModelHint() {
-    const hints = { local: '本地模式：无需网络，生成深入分析与建议', qwen: 'Qwen-VL大模型 · 专业摄影点评', minimax: 'MiniMax影像分析 · 情绪解读', zhipu: '智谱GLM-4V · 艺术鉴赏' };
+    const hints = { local: '本地模式：无需网络，快速分析。云端模式：生成丰富、全面的摄影赏析。', qwen: 'Qwen-VL大模型 · 专业摄影点评', minimax: 'MiniMax影像分析 · 情绪解读', zhipu: '智谱GLM-4V · 艺术鉴赏' };
     modelHint.textContent = hints[modelSelect.value] || hints.local;
 }
 photoArea.addEventListener('click', () => fileInput.click());
@@ -243,7 +243,7 @@ function handleFileSelect(event) {
     };
     reader.readAsDataURL(file);
 }
-// 核心分析 — 生成深入、连贯的文字点评，不再分小项
+// 核心分析 — 生成深入、连贯的文字点评
 async function startAnalysis() {
     loadingDiv.classList.add('active');
     loadingText.textContent = '✨ 解读画面美学中...';
@@ -259,12 +259,14 @@ async function startAnalysis() {
             loadingText.textContent = '🌟 召唤云端美学大师...';
             const cloudData = await cloudAnalysisDetailed();
             let review = null;
-            if (cloudData && cloudData.valid) {
-                review = buildFusionDeepReview(localMetrics, cloudData);
-                sourceTagSpan.textContent = '本地+云端融合 · 深度叙事';
+            if (cloudData && cloudData.valid && cloudData.review && cloudData.review.length > 50) {
+                // 云端成功返回丰富点评
+                review = buildFusionRichReview(localMetrics, cloudData);
+                sourceTagSpan.textContent = '云端美学 · 深度叙事';
                 sourceTagSpan.className = 'source-tag fusion';
                 analysisMetaSpan.textContent = `分析时间：${new Date().toLocaleString()} · ${getModelName(currentModel)} 联合品鉴`;
             } else {
+                // 云端未返回有效内容，降级本地评语
                 review = buildLocalDeepReview(localMetrics);
                 sourceTagSpan.textContent = '本地引擎 (云端未响应)';
                 sourceTagSpan.className = 'source-tag local';
@@ -349,7 +351,7 @@ function analyzeSharpness(data, w, h) {
     let suggestion = sharpScore<65 ? "建议适当增加锐度或精确对焦" : "细节保留出色";
     return { score: sharpScore, evaluation, suggestion };
 }
-// 构建本地深入分析 (自然段落，无机械分项)
+// 构建本地深入分析 (自然段落)
 function buildLocalDeepReview(local) {
     let scoreDesc = "";
     if (local.totalScore >= 85) scoreDesc = "相当出色，已经具备很好的视觉冲击力。";
@@ -357,7 +359,6 @@ function buildLocalDeepReview(local) {
     else if (local.totalScore >= 55) scoreDesc = "中规中矩，但可以通过一些调整变得更好。";
     else scoreDesc = "有一定记录价值，技术层面还有较大提升空间。";
     
-    // 优点组合
     let strengths = [];
     if (local.color.score >= 70) strengths.push(local.color.evaluation);
     if (local.exposure.score >= 70) strengths.push(local.exposure.evaluation);
@@ -366,7 +367,6 @@ function buildLocalDeepReview(local) {
     if (local.sharpness.score >= 70) strengths.push(local.sharpness.evaluation);
     let strengthText = strengths.length ? "优点：" + strengths.slice(0,3).join("；") + "。" : "画面整体比较均衡。";
     
-    // 可优化点
     let suggestions = [];
     if (local.color.score < 70) suggestions.push(local.color.suggestion);
     if (local.exposure.score < 70) suggestions.push(local.exposure.suggestion);
@@ -380,10 +380,11 @@ function buildLocalDeepReview(local) {
     let analysis = `这张照片${scoreDesc} ${strengthText} ${suggestionText}`;
     return { analysis: analysis, suggestions: suggestionText, finalVerdict: finalVerdict };
 }
-// 云端融合深入点评
+// 云端融合深度点评（丰富、全面）
 async function cloudAnalysisDetailed() {
     if (!apiKey && currentModel !== 'local') return null;
-    const prompt = `你是一位资深摄影评论家。请分析这张照片，只返回JSON，格式如下：{"mood": "照片情感氛围(一句话)", "review": "艺术性综合点评(70字左右)", "highlights": ["亮点1","亮点2"], "suggestions": ["改进建议1","改进建议2"], "verdict": "总结陈词(20字内)"}。不要其他解释。`;
+    // 增强版prompt，要求生成150-200字的详细摄影点评，涵盖色彩、光线、构图、情感、技术细节和建议
+    const prompt = `你是一位世界顶级的摄影评论家，请对这张照片进行深度、全面、富有文学性的赏析。要求：分析色彩运用、光线质感、构图设计、情感氛围、技术细节，并给出具体的改进建议或创作方向。全文150-200字，语言优美、专业且易懂。直接返回一个JSON对象，格式如下：{"review": "完整的点评文本（150-200字）"}。不要有任何额外解释。`;
     let resultText = '';
     try {
         if (currentModel === 'qwen') {
@@ -410,21 +411,36 @@ async function cloudAnalysisDetailed() {
             let match = clean.match(/\{[\s\S]*\}/);
             if (match) {
                 let parsed = JSON.parse(match[0]);
-                return { valid: true, mood: parsed.mood, review: parsed.review, highlights: parsed.highlights || [], suggestions: parsed.suggestions || [], verdict: parsed.verdict };
+                // 提取review字段，如果不存在则使用整个文本
+                let reviewText = parsed.review || clean;
+                if (reviewText && reviewText.length > 50) {
+                    return { valid: true, review: reviewText };
+                }
+            } else if (clean.length > 80) {
+                // 如果解析失败但返回了纯文本且足够长，直接使用
+                return { valid: true, review: clean };
             }
         }
     } catch(e) { console.warn(e); }
     return null;
 }
-function buildFusionDeepReview(local, cloud) {
-    let analysisPara = `🎭 情绪氛围：${cloud.mood || "画面具有独特气息"}。\n\n📝 艺术点评：${cloud.review || "值得细细品味。"}`;
-    let highlightsStr = (cloud.highlights && cloud.highlights.length) ? cloud.highlights.map(h => `▪️ ${h}`).join('\n') : "▪️ 光影层次自然";
-    let suggestionsStr = (cloud.suggestions && cloud.suggestions.length) ? cloud.suggestions.map(s => `▪️ ${s}`).join('\n') : "▪️ 尝试更独特的视角";
-    let technicalNote = `技术参考：${local.color.evaluation}；${local.exposure.evaluation}；${local.composition.evaluation}。`;
-    let finalAdvice = `✨ 核心建议：\n${suggestionsStr}\n\n${technicalNote}`;
-    return { analysis: analysisPara, suggestions: finalAdvice, finalVerdict: cloud.verdict || (local.totalScore > 70 ? "佳作" : "有潜力") };
+// 构建融合点评：云端提供详细文本，本地技术数据作为补充建议
+function buildFusionRichReview(local, cloud) {
+    let analysisPara = cloud.review;
+    // 如果云端内容不够长，附加本地分析
+    if (analysisPara.length < 100) {
+        analysisPara += " " + buildLocalDeepReview(local).analysis;
+    }
+    // 从本地指标中提取简洁的技术建议
+    let techTips = [];
+    if (local.color.score < 70) techTips.push(local.color.suggestion);
+    if (local.exposure.score < 70) techTips.push(local.exposure.suggestion);
+    if (local.composition.score < 70) techTips.push(local.composition.suggestion);
+    let suggestionText = techTips.length ? "📷 技术补充建议：" + techTips.slice(0,2).join("；") : "技术细节表现均衡，继续保持。";
+    let finalVerdict = local.totalScore >= 75 ? "值得珍藏的影像" : (local.totalScore >= 60 ? "有潜力的作品" : "继续努力");
+    return { analysis: analysisPara, suggestions: suggestionText, finalVerdict: finalVerdict };
 }
-// 渲染：只展示两个卡片：深度分析 + 建议
+// 渲染卡片
 function renderDeepReview(review) {
     let html = `
         <div class="advice-card"><h3>📷 深入影像分析</h3><p>${review.analysis.replace(/\n/g, '<br>')}</p></div>
