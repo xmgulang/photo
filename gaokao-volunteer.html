@@ -1,0 +1,1930 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026年高考志愿推荐系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* 导航栏 */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 15px 25px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .navbar h1 {
+            font-size: 24px;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ed8936;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        /* 面板样式 */
+        .panel {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #2d3748;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* 表单样式 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #4a5568;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .radio-group, .checkbox-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .radio-item, .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .radio-item:hover, .checkbox-item:hover {
+            background: #f7fafc;
+        }
+
+        input[type="radio"], input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        /* 查询结果 */
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            border: 2px solid #e2e8f0;
+            background: white;
+        }
+
+        .filter-tab.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .filter-tab:hover:not(.active) {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        /* 院校卡片 */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .college-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .college-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border-color: #667eea;
+        }
+
+        .card-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-stable { background: #c6f6d5; color: #22543d; }
+        .badge-rise { background: #feebc8; color: #744210; }
+        .badge-fall { background: #c3dafe; color: #3c366b; }
+
+        .card-header {
+            margin-bottom: 12px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+
+        .card-subtitle {
+            font-size: 14px;
+            color: #718096;
+        }
+
+        .card-body {
+            margin-bottom: 12px;
+        }
+
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .card-meta-label {
+            color: #718096;
+        }
+
+        .card-meta-value {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .match-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .match-stable { color: #48bb78; }
+        .match-rise { color: #ed8936; }
+        .match-fall { color: #4299e1; }
+
+        .trend-arrow {
+            font-size: 20px;
+        }
+
+        /* 详情面板 */
+        .detail-panel {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .detail-panel.active {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .detail-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+
+        .detail-table th, .detail-table td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .detail-table th {
+            background: #edf2f7;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .detail-table td {
+            background: white;
+        }
+
+        .detail-summary {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .summary-item {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            color: #718096;
+            margin-bottom: 4px;
+        }
+
+        .summary-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .trend-info {
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .trend-stable { background: #c6f6d5; color: #22543d; }
+        .trend-rise { background: #feebc8; color: #744210; }
+        .trend-fall { background: #c3dafe; color: #3c366b; }
+
+        /* 志愿表 */
+        .volunteer-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .volunteer-table th, .volunteer-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .volunteer-table th {
+            background: #f7fafc;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .volunteer-table tr:hover {
+            background: #f7fafc;
+        }
+
+        .volunteer-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* 后台管理 */
+        .admin-layout {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 20px;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .sidebar-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2d3748;
+        }
+
+        .year-list {
+            list-style: none;
+        }
+
+        .year-item {
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .year-item:hover {
+            background: #f7fafc;
+        }
+
+        .year-item.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .year-bullet {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #cbd5e0;
+        }
+
+        .year-item.active .year-bullet {
+            background: white;
+        }
+
+        .upload-area {
+            border: 2px dashed #cbd5e0;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f7fafc;
+        }
+
+        .upload-area.dragover {
+            border-color: #667eea;
+            background: #edf2f7;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .mapping-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .mapping-table th, .mapping-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .mapping-table th {
+            background: #f7fafc;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .mapping-select {
+            padding: 6px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .status-card {
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .status-year {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2d3748;
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 8px;
+        }
+
+        .status-item {
+            text-align: center;
+        }
+
+        .status-label {
+            font-size: 12px;
+            color: #718096;
+            margin-bottom: 4px;
+        }
+
+        .status-value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .status-ok { color: #48bb78; }
+        .status-missing { color: #f56565; }
+
+        /* 分页 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        .page-btn {
+            padding: 8px 14px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .page-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .page-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* 提示信息 */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .alert-warning {
+            background: #feebc8;
+            color: #744210;
+            border: 1px solid #fbd38d;
+        }
+
+        .alert-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+
+        .alert.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .admin-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .navbar {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* 模态框 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            font-size: 24px;
+            cursor: pointer;
+            color: #718096;
+        }
+
+        .modal-close:hover {
+            color: #2d3748;
+        }
+
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .preview-table th, .preview-table td {
+            padding: 8px;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+        }
+
+        .preview-table th {
+            background: #f7fafc;
+            font-weight: 600;
+        }
+
+        .preview-table tr:nth-child(even) {
+            background: #f7fafc;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- 导航栏 -->
+    <div class="navbar">
+        <h1>🎓 2026年高考志愿推荐系统</h1>
+        <div class="nav-buttons">
+            <button class="btn btn-primary" onclick="showView('front')">前台查询</button>
+            <button class="btn btn-secondary" onclick="showView('admin')">数据管理</button>
+        </div>
+    </div>
+
+    <!-- 提示信息 -->
+    <div id="alertBox" class="alert"></div>
+
+    <!-- ==================== 前台查询界面 ==================== -->
+    <div id="frontView">
+        <!-- 查询面板 -->
+        <div class="panel">
+            <div class="panel-title">📋 考生信息录入</div>
+            
+            <div class="form-group">
+                <label class="form-label">科类（必填）：</label>
+                <div class="radio-group">
+                    <label class="radio-item">
+                        <input type="radio" name="subjectType" value="物理类" checked>
+                        <span>物理类</span>
+                    </label>
+                    <label class="radio-item">
+                        <input type="radio" name="subjectType" value="历史类">
+                        <span>历史类</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">成绩输入（二选一）：</label>
+                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <input type="number" id="inputRank" class="form-control" placeholder="请输入2026年位次">
+                    </div>
+                    <div style="flex: 1; min-width: 200px;">
+                        <input type="number" id="inputScore" class="form-control" placeholder="请输入2026年分数">
+                    </div>
+                </div>
+                <small style="color: #718096; margin-top: 6px; display: block;">
+                    * 输入分数将自动根据2026年一分一段表转换为位次
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">参考年份：</label>
+                <div class="checkbox-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" class="refYear" value="2025" checked>
+                        <span>2025年</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" class="refYear" value="2024" checked>
+                        <span>2024年</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" class="refYear" value="2023" checked>
+                        <span>2023年</span>
+                    </label>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="startRecommend()" style="width: 100%; padding: 14px; font-size: 16px;">
+                🔍 开始推荐
+            </button>
+        </div>
+
+        <!-- 推荐结果 -->
+        <div id="resultsPanel" class="panel hidden">
+            <div class="results-header">
+                <div class="panel-title">📊 推荐结果</div>
+                <div class="filter-tabs">
+                    <div class="filter-tab active" onclick="filterResults('all')">全部</div>
+                    <div class="filter-tab" onclick="filterResults('rush')">冲一冲</div>
+                    <div class="filter-tab" onclick="filterResults('stable')">稳一稳</div>
+                    <div class="filter-tab" onclick="filterResults('safe')">保一保</div>
+                </div>
+            </div>
+
+            <div id="resultsCount" style="margin-bottom: 15px; color: #718096;"></div>
+            
+            <div id="cardsContainer" class="cards-grid"></div>
+
+            <div class="pagination" id="pagination"></div>
+        </div>
+
+        <!-- 志愿表 -->
+        <div id="volunteerPanel" class="panel hidden">
+            <div class="panel-title">📋 我的志愿表</div>
+            <div id="volunteerList"></div>
+            <div style="margin-top: 15px; display: flex; gap: 10px;">
+                <button class="btn btn-success" onclick="exportVolunteer()">导出志愿表</button>
+                <button class="btn btn-danger" onclick="clearVolunteer()">清空</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 后台管理界面 ==================== -->
+    <div id="adminView" class="hidden">
+        <div class="admin-layout">
+            <!-- 左侧边栏 -->
+            <div class="sidebar">
+                <div class="sidebar-title">📂 年份列表</div>
+                <ul class="year-list" id="yearList">
+                    <li class="year-item active" onclick="selectYear(2026)">
+                        <span class="year-bullet"></span>
+                        <span>2026年</span>
+                    </li>
+                    <li class="year-item" onclick="selectYear(2025)">
+                        <span class="year-bullet"></span>
+                        <span>2025年</span>
+                    </li>
+                    <li class="year-item" onclick="selectYear(2024)">
+                        <span class="year-bullet"></span>
+                        <span>2024年</span>
+                    </li>
+                    <li class="year-item" onclick="selectYear(2023)">
+                        <span class="year-bullet"></span>
+                        <span>2023年</span>
+                    </li>
+                </ul>
+                <button class="btn btn-primary" style="width: 100%; margin-top: 15px;" onclick="addNewYear()">
+                    + 新增年份
+                </button>
+            </div>
+
+            <!-- 右侧内容 -->
+            <div>
+                <!-- 数据录入 -->
+                <div class="panel">
+                    <div class="panel-title">📄 CSV 数据录入区</div>
+                    
+                    <div style="margin-bottom: 15px; padding: 10px; background: #f7fafc; border-radius: 8px;">
+                        <strong>当前年份：<span id="currentYear">2026</span>年</strong>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">科类选择：</label>
+                        <div class="radio-group">
+                            <label class="radio-item">
+                                <input type="radio" name="adminSubject" value="物理类" checked>
+                                <span>物理类</span>
+                            </label>
+                            <label class="radio-item">
+                                <input type="radio" name="adminSubject" value="历史类">
+                                <span>历史类</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">文件类型：</label>
+                        <div class="radio-group">
+                            <label class="radio-item">
+                                <input type="radio" name="fileType" value="admission" checked>
+                                <span>录取数据（{年份}_{科类}.csv）</span>
+                            </label>
+                            <label class="radio-item">
+                                <input type="radio" name="fileType" value="rank">
+                                <span>位次表（{年份}_{科类}位次.csv）</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                        <div class="upload-icon">📥</div>
+                        <div style="font-weight: 600; margin-bottom: 8px;">点击选择文件或拖拽到此处</div>
+                        <div style="font-size: 14px; color: #718096;">支持 CSV 格式文件</div>
+                        <input type="file" id="fileInput" accept=".csv" style="display: none;" onchange="handleFileSelect(event)">
+                    </div>
+
+                    <div id="fileInfo" style="display: none; margin-bottom: 20px; padding: 15px; background: #f7fafc; border-radius: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 4px;">已选择：<span id="fileName"></span></div>
+                                <div style="font-size: 14px; color: #718096;">
+                                    大小：<span id="fileSize"></span> KB | 行数：<span id="fileRows"></span>条
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-secondary" onclick="previewData()">预览数据</button>
+                                <button class="btn btn-success" onclick="startImport()">开始导入</button>
+                                <button class="btn btn-danger" onclick="cancelImport()">取消</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="mappingArea" style="display: none;">
+                        <div style="font-weight: 600; margin-bottom: 10px;">📋 列名映射（自动识别）：</div>
+                        <table class="mapping-table">
+                            <thead>
+                                <tr>
+                                    <th>CSV列名</th>
+                                    <th>→</th>
+                                    <th>标准列名</th>
+                                    <th>状态</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mappingBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 数据存储状态 -->
+                <div class="panel">
+                    <div class="panel-title">📊 数据存储状态</div>
+                    <div id="statusGrid" class="status-grid"></div>
+                    <div style="margin-top: 20px; display: flex; gap: 10px;">
+                        <button class="btn btn-secondary" onclick="downloadTemplate()">下载模板</button>
+                        <button class="btn btn-secondary" onclick="batchExport()">批量导出</button>
+                        <button class="btn btn-secondary" onclick="backupData()">数据备份</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 数据预览模态框 -->
+<div class="modal-overlay" id="previewModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">数据预览（前20条）</div>
+            <div class="modal-close" onclick="closePreview()">&times;</div>
+        </div>
+        <div id="previewContent" style="overflow-x: auto;"></div>
+    </div>
+</div>
+
+<script>
+// ==================== 数据管理类 ====================
+class DataManager {
+    constructor() {
+        this.data = this.loadData();
+        this.initMockData();
+    }
+
+    loadData() {
+        const stored = localStorage.getItem('gaokao_data_v2');
+        if (stored) {
+            return JSON.parse(stored);
+        }
+        return {};
+    }
+
+    saveData() {
+        localStorage.setItem('gaokao_data_v2', JSON.stringify(this.data));
+    }
+
+    // 初始化模拟数据
+    initMockData() {
+        if (Object.keys(this.data).length > 0) return;
+
+        const provinces = ['福建'];
+        const subjects = ['物理类', '历史类'];
+        const years = [2023, 2024, 2025];
+        
+        // 模拟院校数据
+        const colleges = [
+            { name: '厦门大学', code: '10001', majors: [
+                { name: '计算机科学与技术', baseRank: 8000, trend: 'stable' },
+                { name: '经济学', baseRank: 6000, trend: 'rise' },
+                { name: '法学', baseRank: 7500, trend: 'stable' }
+            ]},
+            { name: '福州大学', code: '10002', majors: [
+                { name: '软件工程', baseRank: 12000, trend: 'rise' },
+                { name: '电气工程', baseRank: 15000, trend: 'stable' },
+                { name: '土木工程', baseRank: 18000, trend: 'fall' }
+            ]},
+            { name: '福建师范大学', code: '10003', majors: [
+                { name: '计算机科学与技术', baseRank: 15000, trend: 'stable' },
+                { name: '汉语言文学', baseRank: 14000, trend: 'stable' },
+                { name: '英语', baseRank: 16000, trend: 'fall' }
+            ]},
+            { name: '华侨大学', code: '10004', majors: [
+                { name: '法学', baseRank: 20000, trend: 'stable' },
+                { name: '工商管理', baseRank: 22000, trend: 'rise' },
+                { name: '旅游管理', baseRank: 25000, trend: 'fall' }
+            ]},
+            { name: '集美大学', code: '10005', majors: [
+                { name: '会计学', baseRank: 22000, trend: 'stable' },
+                { name: '金融学', baseRank: 21000, trend: 'rise' },
+                { name: '机械设计', baseRank: 26000, trend: 'stable' }
+            ]},
+            { name: '福建农林大学', code: '10006', majors: [
+                { name: '农学', baseRank: 35000, trend: 'fall' },
+                { name: '林学', baseRank: 36000, trend: 'fall' },
+                { name: '食品科学', baseRank: 32000, trend: 'stable' }
+            ]},
+            { name: '福建医科大学', code: '10007', majors: [
+                { name: '临床医学', baseRank: 10000, trend: 'rise' },
+                { name: '护理学', baseRank: 28000, trend: 'stable' },
+                { name: '药学', baseRank: 25000, trend: 'stable' }
+            ]},
+            { name: '福建中医药大学', code: '10008', majors: [
+                { name: '中医学', baseRank: 20000, trend: 'stable' },
+                { name: '针灸推拿', baseRank: 22000, trend: 'fall' },
+                { name: '中药学', baseRank: 24000, trend: 'stable' }
+            ]}
+        ];
+
+        provinces.forEach(prov => {
+            this.data[prov] = {};
+            subjects.forEach(sub => {
+                this.data[prov][sub] = {
+                    admission: {},
+                    rankTable: {}
+                };
+                
+                years.forEach(year => {
+                    // 生成录取数据
+                    const admissionData = [];
+                    colleges.forEach(college => {
+                        college.majors.forEach(major => {
+                            const variation = Math.floor(Math.random() * 2000) - 1000;
+                            const yearOffset = (year - 2025) * 500;
+                            const rank = major.baseRank + variation + yearOffset;
+                            
+                            // 根据科类调整位次
+                            const adjustedRank = sub === '历史类' ? rank + 5000 : rank;
+                            
+                            admissionData.push({
+                                college_id: college.code,
+                                college_name: college.name,
+                                major: major.name,
+                                min_score: 600 - Math.floor(adjustedRank / 1000),
+                                min_rank: adjustedRank,
+                                enrollment: 30 + Math.floor(Math.random() * 40),
+                                trend: major.trend
+                            });
+                        });
+                    });
+                    
+                    this.data[prov][sub].admission[year] = admissionData;
+                    
+                    // 生成一分一段表
+                    const rankTable = [];
+                    for (let score = 200; score <= 750; score += 1) {
+                        const rank = Math.max(1, Math.floor((750 - score) * 150 + Math.random() * 50));
+                        rankTable.push({ score, rank });
+                    }
+                    this.data[prov][sub].rankTable[year] = rankTable;
+                });
+
+                // 2026年只生成一分一段表
+                const rankTable2026 = [];
+                for (let score = 200; score <= 750; score += 1) {
+                    const rank = Math.max(1, Math.floor((750 - score) * 155 + Math.random() * 30));
+                    rankTable2026.push({ score, rank });
+                }
+                this.data[prov][sub].rankTable[2026] = rankTable2026;
+            });
+        });
+
+        this.saveData();
+        console.log('模拟数据已生成');
+    }
+
+    // 获取录取数据
+    getAdmissionData(province, subject, year) {
+        return this.data[province]?.[subject]?.admission[year] || [];
+    }
+
+    // 获取位次表
+    getRankTable(province, subject, year) {
+        return this.data[province]?.[subject]?.rankTable[year] || [];
+    }
+
+    // 分数转位次
+    scoreToRank(province, subject, score) {
+        const rankTable = this.getRankTable(province, subject, 2026);
+        const item = rankTable.find(r => r.score === parseInt(score));
+        return item ? item.rank : null;
+    }
+
+    // 保存录取数据
+    saveAdmissionData(province, subject, year, data) {
+        if (!this.data[province]) this.data[province] = {};
+        if (!this.data[province][subject]) this.data[province][subject] = { admission: {}, rankTable: {} };
+        this.data[province][subject].admission[year] = data;
+        this.saveData();
+    }
+
+    // 保存位次表
+    saveRankTable(province, subject, year, data) {
+        if (!this.data[province]) this.data[province] = {};
+        if (!this.data[province][subject]) this.data[province][subject] = { admission: {}, rankTable: {} };
+        this.data[province][subject].rankTable[year] = data;
+        this.saveData();
+    }
+
+    // 检查数据完整性
+    checkDataStatus() {
+        const provinces = Object.keys(this.data);
+        const status = {};
+        
+        provinces.forEach(prov => {
+            status[prov] = {};
+            ['物理类', '历史类'].forEach(sub => {
+                status[prov][sub] = {
+                    admission: {},
+                    rankTable: {}
+                };
+                for (let year = 2023; year <= 2026; year++) {
+                    const hasAdmission = this.getAdmissionData(prov, sub, year).length > 0;
+                    const hasRank = this.getRankTable(prov, sub, year).length > 0;
+                    status[prov][sub].admission[year] = hasAdmission;
+                    status[prov][sub].rankTable[year] = hasRank;
+                }
+            });
+        });
+        
+        return status;
+    }
+}
+
+// ==================== 全局状态 ====================
+const dataManager = new DataManager();
+let currentView = 'front';
+let currentFilter = 'all';
+let recommendResults = [];
+let currentPage = 1;
+const pageSize = 8;
+let volunteerList = [];
+let currentAdminYear = 2026;
+let pendingImportData = null;
+
+// ==================== 界面切换 ====================
+function showView(view) {
+    currentView = view;
+    document.getElementById('frontView').classList.toggle('hidden', view !== 'front');
+    document.getElementById('adminView').classList.toggle('hidden', view !== 'admin');
+    
+    if (view === 'admin') {
+        updateStatusGrid();
+    }
+}
+
+function showAlert(message, type = 'success') {
+    const alertBox = document.getElementById('alertBox');
+    alertBox.className = `alert alert-${type} show`;
+    alertBox.textContent = message;
+    setTimeout(() => {
+        alertBox.classList.remove('show');
+    }, 3000);
+}
+
+// ==================== 前台查询功能 ====================
+function startRecommend() {
+    const subjectType = document.querySelector('input[name="subjectType"]:checked').value;
+    const inputRank = document.getElementById('inputRank').value;
+    const inputScore = document.getElementById('inputScore').value;
+    const refYears = Array.from(document.querySelectorAll('.refYear:checked')).map(cb => parseInt(cb.value));
+
+    if (!inputRank && !inputScore) {
+        showAlert('请输入位次或分数！', 'warning');
+        return;
+    }
+
+    let userRank;
+    if (inputRank) {
+        userRank = parseInt(inputRank);
+    } else {
+        userRank = dataManager.scoreToRank('福建', subjectType, inputScore);
+        if (!userRank) {
+            showAlert('无法找到对应位次，请检查分数是否正确！', 'error');
+            return;
+        }
+        showAlert(`您的分数 ${inputScore} 分对应位次约为 ${userRank} 名`, 'success');
+    }
+
+    // 匹配院校
+    recommendResults = [];
+    const allColleges = new Map();
+
+    refYears.forEach(year => {
+        const admissions = dataManager.getAdmissionData('福建', subjectType, year);
+        admissions.forEach(item => {
+            const key = `${item.college_name}-${item.major}`;
+            if (!allColleges.has(key)) {
+                allColleges.set(key, {
+                    college_id: item.college_id,
+                    college_name: item.college_name,
+                    major: item.major,
+                    years: {},
+                    trend: item.trend
+                });
+            }
+            allColleges.get(key).years[year] = {
+                rank: item.min_rank,
+                score: item.min_score,
+                enrollment: item.enrollment
+            };
+        });
+    });
+
+    // 计算匹配度
+    allColleges.forEach(college => {
+        const years = Object.keys(college.years).map(Number).sort();
+        const ranks = years.map(y => college.years[y].rank);
+        const avgRank = Math.round(ranks.reduce((a, b) => a + b, 0) / ranks.length);
+        const rankDiff = userRank - avgRank;
+        
+        let matchType, confidence;
+        if (rankDiff < -3000) {
+            matchType = 'rush';
+            confidence = '中';
+        } else if (rankDiff >= -3000 && rankDiff <= 5000) {
+            matchType = 'stable';
+            confidence = '高';
+        } else {
+            matchType = 'safe';
+            confidence = '高';
+        }
+
+        // 趋势判断
+        let trendType = 'stable';
+        let trendDesc = '位次稳定';
+        if (years.length >= 2) {
+            const firstRank = college.years[years[0]].rank;
+            const lastRank = college.years[years[years.length - 1]].rank;
+            const change = lastRank - firstRank;
+            
+            if (change < -1000) {
+                trendType = 'rise';
+                trendDesc = '位次上涨（热门），建议谨慎';
+            } else if (change > 1000) {
+                trendType = 'fall';
+                trendDesc = '位次下降（冷门），可能捡漏';
+            }
+        }
+
+        recommendResults.push({
+            ...college,
+            avgRank,
+            avgScore: Math.round(Object.values(college.years).reduce((a, b) => a + b.score, 0) / years.length),
+            avgEnrollment: Math.round(Object.values(college.years).reduce((a, b) => a + b.enrollment, 0) / years.length),
+            rankDiff,
+            matchType,
+            confidence,
+            trendType,
+            trendDesc,
+            userRank,
+            yearsList: years
+        });
+    });
+
+    // 排序：稳一稳优先，然后按匹配度
+    recommendResults.sort((a, b) => {
+        const order = { stable: 0, rush: 1, safe: 2 };
+        return order[a.matchType] - order[b.matchType] || Math.abs(a.rankDiff) - Math.abs(b.rankDiff);
+    });
+
+    document.getElementById('resultsPanel').classList.remove('hidden');
+    currentPage = 1;
+    renderResults();
+    renderVolunteerList();
+}
+
+function filterResults(type) {
+    currentFilter = type;
+    currentPage = 1;
+    
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.classList.toggle('active', 
+            (type === 'all' && tab.textContent === '全部') ||
+            (type === 'rush' && tab.textContent === '冲一冲') ||
+            (type === 'stable' && tab.textContent === '稳一稳') ||
+            (type === 'safe' && tab.textContent === '保一保')
+        );
+    });
+    
+    renderResults();
+}
+
+function renderResults() {
+    const container = document.getElementById('cardsContainer');
+    const filtered = currentFilter === 'all' 
+        ? recommendResults 
+        : recommendResults.filter(r => r.matchType === currentFilter);
+    
+    const start = (currentPage - 1) * pageSize;
+    const end = start + pageSize;
+    const pageData = filtered.slice(start, end);
+
+    document.getElementById('resultsCount').textContent = `共找到 ${filtered.length} 所匹配院校（第 ${currentPage} / ${Math.ceil(filtered.length / pageSize)} 页）`;
+
+    container.innerHTML = pageData.map(item => {
+        const badgeClass = item.trendType === 'stable' ? 'badge-stable' : 
+                          item.trendType === 'rise' ? 'badge-rise' : 'badge-fall';
+        const badgeText = item.trendType === 'stable' ? '位次稳定' : 
+                         item.trendType === 'rise' ? '位次上涨' : '位次下降';
+        
+        const matchClass = item.matchType === 'stable' ? 'match-stable' : 
+                          item.matchType === 'rush' ? 'match-rise' : 'match-fall';
+        const matchText = item.matchType === 'stable' ? '稳一稳' : 
+                         item.matchType === 'rush' ? '冲一冲' : '保一保';
+        
+        const arrow = item.trendType === 'stable' ? '→' : 
+                     item.trendType === 'rise' ? '↗️' : '↘️';
+
+        return `
+            <div class="college-card" onclick="toggleDetail('${item.college_id}-${item.major}')">
+                <div class="card-badge ${badgeClass}">${badgeText}</div>
+                <div class="card-header">
+                    <div class="card-title">${item.college_name}</div>
+                    <div class="card-subtitle">${item.major}</div>
+                </div>
+                <div class="card-body">
+                    <div class="card-meta">
+                        <span class="card-meta-label">平均位次</span>
+                        <span class="card-meta-value">${item.avgRank.toLocaleString()}</span>
+                    </div>
+                    <div class="card-meta">
+                        <span class="card-meta-label">您的位次</span>
+                        <span class="card-meta-value">${item.userRank.toLocaleString()}</span>
+                    </div>
+                    <div class="card-meta">
+                        <span class="card-meta-label">位次差</span>
+                        <span class="card-meta-value" style="color: ${item.rankDiff > 0 ? '#48bb78' : '#ed8936'}">
+                            ${item.rankDiff > 0 ? '+' : ''}${item.rankDiff}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="match-indicator ${matchClass}">
+                        <span>${matchText}</span>
+                        <span>置信度:${item.confidence}</span>
+                    </div>
+                    <span class="trend-arrow">${arrow}</span>
+                </div>
+                
+                <div class="detail-panel" id="detail-${item.college_id}-${item.major}">
+                    <table class="detail-table">
+                        <thead>
+                            <tr>
+                                <th>年份</th>
+                                ${item.yearsList.map(y => `<th>${y}年</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>位次</strong></td>
+                                ${item.yearsList.map(y => `<td>${item.years[y]?.rank?.toLocaleString() || '-'}</td>`).join('')}
+                            </tr>
+                            <tr>
+                                <td><strong>分数</strong></td>
+                                ${item.yearsList.map(y => `<td>${item.years[y]?.score || '-'}</td>`).join('')}
+                            </tr>
+                            <tr>
+                                <td><strong>招生人数</strong></td>
+                                ${item.yearsList.map(y => `<td>${item.years[y]?.enrollment || '-'}</td>`).join('')}
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="detail-summary">
+                        <div class="summary-item">
+                            <div class="summary-label">平均位次</div>
+                            <div class="summary-value">${item.avgRank.toLocaleString()}</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">平均分数</div>
+                            <div class="summary-value">${item.avgScore}</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">平均招生</div>
+                            <div class="summary-value">${item.avgEnrollment}人</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">位次差</div>
+                            <div class="summary-value" style="color: ${item.rankDiff > 0 ? '#48bb78' : '#ed8936'}">
+                                ${item.rankDiff > 0 ? '+' : ''}${item.rankDiff}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="trend-info ${item.trendType === 'stable' ? 'trend-stable' : item.trendType === 'rise' ? 'trend-rise' : 'trend-fall'}">
+                        <strong>趋势分析：</strong>${item.trendDesc}
+                        ${item.yearsList.length < 3 ? '（数据不足，仅' + item.yearsList.length + '年数据）' : ''}
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button class="btn btn-primary" onclick="event.stopPropagation(); addToVolunteer('${item.college_id}', '${item.college_name}', '${item.major}', '${matchText}')">
+                            加入志愿表
+                        </button>
+                        <button class="btn btn-secondary" onclick="event.stopPropagation(); toggleDetail('${item.college_id}-${item.major}')">
+                            关闭
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    renderPagination(filtered.length);
+}
+
+function toggleDetail(id) {
+    const panel = document.getElementById(`detail-${id}`);
+    panel.classList.toggle('active');
+}
+
+function renderPagination(total) {
+    const totalPages = Math.ceil(total / pageSize);
+    const pagination = document.getElementById('pagination');
+    
+    if (totalPages <= 1) {
+        pagination.innerHTML = '';
+        return;
+    }
+
+    let html = `
+        <button class="page-btn" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+            ← 上一页
+        </button>
+    `;
+    
+    for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+            html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+        } else if (i === currentPage - 2 || i === currentPage + 2) {
+            html += `<span>...</span>`;
+        }
+    }
+    
+    html += `
+        <button class="page-btn" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+            下一页 →
+        </button>
+    `;
+    
+    pagination.innerHTML = html;
+}
+
+function changePage(page) {
+    const filtered = currentFilter === 'all' 
+        ? recommendResults 
+        : recommendResults.filter(r => r.matchType === currentFilter);
+    const totalPages = Math.ceil(filtered.length / pageSize);
+    
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    renderResults();
+    document.getElementById('resultsPanel').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ==================== 志愿表功能 ====================
+function addToVolunteer(id, name, major, matchType) {
+    if (volunteerList.length >= 50) {
+        showAlert('志愿表已满，最多50所！', 'warning');
+        return;
+    }
+    
+    if (volunteerList.some(v => v.college_id === id && v.major === major)) {
+        showAlert('该院校专业已在志愿表中！', 'warning');
+        return;
+    }
+    
+    volunteerList.push({
+        seq: volunteerList.length + 1,
+        college_id: id,
+        college_name: name,
+        major: major,
+        match_type: matchType
+    });
+    
+    renderVolunteerList();
+    showAlert('已加入志愿表！', 'success');
+}
+
+function renderVolunteerList() {
+    const panel = document.getElementById('volunteerPanel');
+    const container = document.getElementById('volunteerList');
+    
+    if (volunteerList.length === 0) {
+        panel.classList.add('hidden');
+        return;
+    }
+    
+    panel.classList.remove('hidden');
+    container.innerHTML = `
+        <table class="volunteer-table">
+            <thead>
+                <tr>
+                    <th>序号</th>
+                    <th>院校</th>
+                    <th>专业</th>
+                    <th>匹配度</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${volunteerList.map((item, index) => `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${item.college_name}</td>
+                        <td>${item.major}</td>
+                        <td>
+                            <span style="
+                                display: inline-block;
+                                padding: 4px 10px;
+                                border-radius: 12px;
+                                font-size: 12px;
+                                font-weight: 600;
+                                background: ${item.match_type === '稳一稳' ? '#c6f6d5' : item.match_type === '冲一冲' ? '#feebc8' : '#c3dafe'};
+                                color: ${item.match_type === '稳一稳' ? '#22543d' : item.match_type === '冲一冲' ? '#744210' : '#3c366b'};
+                            ">
+                                ${item.match_type}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-danger" style="padding: 6px 12px; font-size: 12px;" onclick="removeVolunteer(${index})">
+                                删除
+                            </button>
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+}
+
+function removeVolunteer(index) {
+    volunteerList.splice(index, 1);
+    volunteerList.forEach((item, i) => item.seq = i + 1);
+    renderVolunteerList();
+}
+
+function clearVolunteer() {
+    if (!confirm('确定要清空志愿表吗？')) return;
+    volunteerList = [];
+    renderVolunteerList();
+    showAlert('志愿表已清空！', 'success');
+}
+
+function exportVolunteer() {
+    if (volunteerList.length === 0) {
+        showAlert('志愿表为空！', 'warning');
+        return;
+    }
+    
+    let csv = '序号,院校名称,专业,匹配度\n';
+    volunteerList.forEach(v => {
+        csv += `${v.seq},${v.college_name},${v.major},${v.match_type}\n`;
+    });
+    
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `我的志愿表_${new Date().toLocaleDateString()}.csv`;
+    link.click();
+    
+    showAlert('志愿表已导出！', 'success');
+}
+
+// ==================== 后台管理功能 ====================
+function selectYear(year) {
+    currentAdminYear = year;
+    document.getElementById('currentYear').textContent = year;
+    
+    document.querySelectorAll('.year-item').forEach((item, index) => {
+        item.classList.toggle('active', [2026, 2025, 2024, 2023][index] === year);
+    });
+    
+    updateStatusGrid();
+}
+
+function addNewYear() {
+    const year = prompt('请输入新增年份（如2027）：');
+    if (!year || isNaN(year)) return;
+    
+    const yearNum = parseInt(year);
+    if (yearNum < 2020 || yearNum > 2030) {
+        showAlert('年份范围应在2020-2030之间！', 'error');
+        return;
+    }
+    
+    // 添加到列表
+    const yearList = document.getElementById('yearList');
+    const li = document.createElement('li');
+    li.className = 'year-item';
+    li.onclick = () => selectYear(yearNum);
+    li.innerHTML = `<span class="year-bullet"></span><span>${yearNum}年</span>`;
+    yearList.appendChild(li);
+    
+    selectYear(yearNum);
+    showAlert(`已添加 ${yearNum} 年！`, 'success');
+}
+
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const content = e.target.result;
+        const lines = content.split('\n').filter(line => line.trim());
+        const headers = lines[0].split(',').map(h => h.trim());
+        
+        pendingImportData = {
+            file: file,
+            headers: headers,
+            rows: lines.slice(1).map(line => line.split(',').map(c => c.trim())),
+            content: content
+        };
+        
+        document.getElementById('fileName').textContent = file.name;
+        document.getElementById('fileSize').textContent = (file.size / 1024).toFixed(1);
+        document.getElementById('fileRows').textContent = lines.length - 1;
+        document.getElementById('fileInfo').style.display = 'block';
+        
+        // 自动映射列名
+        autoMapColumns(headers);
+    };
+    reader.readAsText(file);
+}
+
+function autoMapColumns(headers) {
+    const standardColumns = {
+        'college_id': ['学校代码', '院校代码', 'code', 'id'],
+        'college_name': ['院校名称', '学校名称', 'name', 'college'],
+        'major': ['专业名', '专业名称', '专业', 'major'],
+        'min_score': ['投档线', '最低分', '分数', 'score', 'min_score'],
+        'min_rank': ['位次号', '位次', '排名', 'rank', 'min_rank'],
+        'enrollment': ['招生人数', '计划数', '人数', 'enrollment']
+    };
+    
+    const mappingBody = document.getElementById('mappingBody');
+    mappingBody.innerHTML = '';
+    
+    headers.forEach(header => {
+        let mapped = '';
+        let status = '⚠️ 未识别';
+        
+        for (const [std, aliases] of Object.entries(standardColumns)) {
+            if (aliases.some(a => header.toLowerCase().includes(a.toLowerCase()))) {
+                mapped = std;
+                status = '✅ 已匹配';
+                break;
+            }
+        }
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${header}</td>
+            <td>→</td>
+            <td>
+                <select class="mapping-select" data-col="${header}">
+                    <option value="">忽略</option>
+                    ${Object.keys(standardColumns).map(std => 
+                        `<option value="${std}" ${std === mapped ? 'selected' : ''}>${std}</option>`
+                    ).join('')}
+                </select>
+            </td>
+            <td>${status}</td>
+        `;
+        mappingBody.appendChild(row);
+    });
+    
+    document.getElementById('mappingArea').style.display = 'block';
+}
+
+function previewData() {
+    if (!pendingImportData) return;
+    
+    const modal = document.getElementById('previewModal');
+    const content = document.getElementById('previewContent');
+    
+    let html = '<table class="preview-table"><thead><tr>';
+    pendingImportData.headers.forEach(h => {
+        html += `<th>${h}</th>`;
+    });
+    html += '</tr></thead><tbody>';
+    
+    pendingImportData.rows.slice(0, 20).forEach(row => {
+        html += '<tr>';
+        row.forEach(cell => {
+            html += `<td>${cell}</td>`;
+        });
+        html += '</tr>';
+    });
+    
+    html += '</tbody></table>';
+    content.innerHTML = html;
+    modal.classList.add('active');
+}
+
+function closePreview() {
+    document.getElementById('previewModal').classList.remove('active');
+}
+
+function startImport() {
+    if (!pendingImportData) return;
+    
+    const subject = document.querySelector('input[name="adminSubject"]:checked').value;
+    const fileType = document.querySelector('input[name="fileType"]:checked').value;
+    
+    // 获取列映射
+    const mapping = {};
+    document.querySelectorAll('.mapping-select').forEach(select => {
+        const col = select.dataset.col;
+        const val = select.value;
+        if (val) mapping[val] = col;
+    });
+    
+    // 检查必要列
+    const requiredCols = fileType === 'admission' 
+        ? ['college_name', 'major', 'min_rank']
+        : ['score', 'rank'];
+    
+    const missing = requiredCols.filter(col => !mapping[col]);
+    if (missing.length > 0) {
+        showAlert(`缺少必要列：${missing.join(', ')}`, 'error');
+        return;
+    }
+    
+    // 解析数据
+    const data = [];
+    pendingImportData.rows.forEach(row => {
+        const obj = {};
+        pendingImportData.headers.forEach((h, i) => {
+            const stdCol = Object.entries(mapping).find(([k, v]) => v === h)?.[0];
+            if (stdCol) {
+                obj[stdCol] = row[i];
+            }
+        });
+        data.push(obj);
+    });
+    
+    // 保存数据
+    if (fileType === 'admission') {
+        dataManager.saveAdmissionData('福建', subject, currentAdminYear, data);
+    } else {
+        const rankData = data.map(d => ({
+            score: parseInt(d.score),
+            rank: parseInt(d.rank)
+        })).filter(d => !isNaN(d.score) && !isNaN(d.rank));
+        dataManager.saveRankTable('福建', subject, currentAdminYear, rankData);
+    }
+    
+    showAlert(`成功导入 ${data.length} 条数据！`, 'success');
+    updateStatusGrid();
+    
+    // 重置
+    cancelImport();
+}
+
+function cancelImport() {
+    pendingImportData = null;
+    document.getElementById('fileInput').value = '';
+    document.getElementById('fileInfo').style.display = 'none';
+    document.getElementById('mappingArea').style.display = 'none';
+}
+
+function updateStatusGrid() {
+    const status = dataManager.checkDataStatus();
+    const grid = document.getElementById('statusGrid');
+    
+    grid.innerHTML = '';
+    Object.entries(status).forEach(([province, subjects]) => {
+        Object.entries(subjects).forEach(([subject, data]) => {
+            const card = document.createElement('div');
+            card.className = 'status-card';
+            
+            let html = `<div class="status-year">${province} - ${subject}</div>`;
+            html += '<div class="status-row">';
+            
+            ['admission', 'rankTable'].forEach(type => {
+                const typeName = type === 'admission' ? '录取数据' : '位次表';
+                html += '<div class="status-item">';
+                html += `<div class="status-label">${typeName}</div>`;
+                
+                Object.entries(data[type]).forEach(([year, exists]) => {
+                    const count = exists ? (type === 'admission' ? 
+                        dataManager.getAdmissionData(province, subject, year).length : 
+                        dataManager.getRankTable(province, subject, year).length) : 0;
+                    html += `<div class="status-value ${exists ? 'status-ok' : 'status-missing'}">
+                        ${year}: ${exists ? (type === 'admission' ? count + '所' : '✅') : '❌'}
+                    </div>`;
+                });
+                
+                html += '</div>';
+            });
+            
+            html += '</div>';
+            card.innerHTML = html;
+            grid.appendChild(card);
+        });
+    });
+}
+
+function downloadTemplate() {
+    const fileType = document.querySelector('input[name="fileType"]:checked').value;
+    let csv = '';
+    
+    if (fileType === 'admission') {
+        csv = '学校代码,院校名称,专业名,投档线,位次号,招生人数\n10001,厦门大学,计算机科学与技术,620,8000,50\n';
+    } else {
+        csv = '分数,位次\n750,1\n749,3\n748,5\n';
+    }
+    
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `模板_${fileType === 'admission' ? '录取数据' : '位次表'}.csv`;
+    link.click();
+    
+    showAlert('模板已下载！', 'success');
+}
+
+function batchExport() {
+    const subject = document.querySelector('input[name="adminSubject"]:checked').value;
+    let csv = '年份,科类,类型,状态,记录数\n';
+    
+    for (let year = 2023; year <= 2026; year++) {
+        const hasAdmission = dataManager.getAdmissionData('福建', subject, year).length;
+        const hasRank = dataManager.getRankTable('福建', subject, year).length;
+        csv += `${year},${subject},录取数据,${hasAdmission > 0 ? '有' : '无'},${hasAdmission}\n`;
+        csv += `${year},${subject},位次表,${hasRank > 0 ? '有' : '无'},${hasRank}\n`;
+    }
+    
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `数据导出_${subject}_${new Date().toLocaleDateString()}.csv`;
+    link.click();
+    
+    showAlert('数据已导出！', 'success');
+}
+
+function backupData() {
+    const data = localStorage.getItem('gaokao_data_v2');
+    const blob = new Blob([data], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `数据备份_${new Date().toLocaleDateString()}.json`;
+    link.click();
+    
+    showAlert('数据已备份！', 'success');
+}
+
+// ==================== 拖拽上传 ====================
+const uploadArea = document.getElementById('uploadArea');
+
+uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('dragover');
+});
+
+uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('dragover');
+});
+
+uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        document.getElementById('fileInput').files = files;
+        handleFileSelect({ target: { files: files } });
+    }
+});
+
+// ==================== 初始化 ====================
+document.addEventListener('DOMContentLoaded', () => {
+    updateStatusGrid();
+    
+    // 默认显示前台
+    showView('front');
+});
+
+// 防止模态框点击外部关闭
+document.getElementById('previewModal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('previewModal')) {
+        closePreview();
+    }
+});
+</script>
+
+</body>
+</html>
