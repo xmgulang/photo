@@ -256,15 +256,15 @@ async function testApiConnection() {
     }
     showStatus('正在测试连接... 请确保 CORS 插件已开启', 'ok');
     try {
-        // 使用一个 100x100 的白色方块 base64 (符合模型尺寸要求)
-        const validTestImageBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMTM0A1t6AAAAIElEQVR4nO3BAQEAAACCIP+vbkhAAQAAAAAAAAAAAAAAvxsiAAG7SdP3AAAAAElFTkSuQmCC';
+        // 一个 100x100 白色纯色 JPEG 的 base64 (有效且标准)
+        const validTestImageBase64 = '/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAn/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCyAAAAAAAAAAAAAAAA/9k=';
         const payload = {
             model: 'qwen3.6-plus',
             messages: [{
                 role: 'user',
                 content: [
-                    { type: 'image_url', image_url: { url: `data:image/png;base64,${validTestImageBase64}` } },
-                    { type: 'text', text: '简单描述这张图片' }
+                    { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${validTestImageBase64}` } },
+                    { type: 'text', text: '描述这张图片' }
                 ]
             }]
         };
