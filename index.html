@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-<title>AI大模型图片智能分析 · 百炼版</title>
+<title>AI图片智能分析 · 百炼版</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 :root { --bg: #fff; --text: #1c1c1e; --text-secondary: #6c6c70; --placeholder-bg: #F2F2F7; --card-bg: #F8F8FC; --intro-color: #8e8e93; --photo-height: 46vh; --accent: #E91E63; --accent-light: #FF80AB; --border: #E5E5EA; --font-size: 15px; --shadow-sm: 0 2px 6px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.05); }
@@ -184,7 +184,7 @@ function init() {
 }
 function updateStatus() {
     if (currentModel === 'local') {
-        statusBadge.textContent = '🟢 本地·生动引擎';
+        statusBadge.textContent = '🟢 本地';
         statusBadge.className = 'status-badge online';
     } else if (apiKey) {
         statusBadge.textContent = '🔮 百炼Qwen3.6-Plus 云端增强';
