@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-<title>AI图片智能分析 · 百炼版</title>
+<title>AI大模型图片智能分析 · 百炼版</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 :root { --bg: #fff; --text: #1c1c1e; --text-secondary: #6c6c70; --placeholder-bg: #F2F2F7; --card-bg: #F8F8FC; --intro-color: #8e8e93; --photo-height: 46vh; --accent: #E91E63; --accent-light: #FF80AB; --border: #E5E5EA; --font-size: 15px; --shadow-sm: 0 2px 6px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.05); }
@@ -100,7 +100,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Ping
 </div>
 <div class="header">
 <span class="status-badge" id="statusBadge">🟢 本地模式</span>
-<span class="header-title">📸 AI图片智能分析</span>
+<span class="header-title">📸 AI大模型图片智能分析</span>
 <div class="header-actions">
 <button class="header-btn" id="btnFont">Aa</button>
 <button class="header-btn" id="btnTheme">🌙</button>
@@ -184,7 +184,7 @@ function init() {
 }
 function updateStatus() {
     if (currentModel === 'local') {
-        statusBadge.textContent = '🟢 本地';
+        statusBadge.textContent = '🟢 本地·生动引擎';
         statusBadge.className = 'status-badge online';
     } else if (apiKey) {
         statusBadge.textContent = '🔮 百炼Qwen3.6-Plus 云端增强';
@@ -256,13 +256,14 @@ async function testApiConnection() {
     }
     showStatus('正在测试连接... 请确保 CORS 插件已开启', 'ok');
     try {
-        const testImageBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+        // 使用一个 100x100 的白色方块 base64 (符合模型尺寸要求)
+        const validTestImageBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMTM0A1t6AAAAIElEQVR4nO3BAQEAAACCIP+vbkhAAQAAAAAAAAAAAAAAvxsiAAG7SdP3AAAAAElFTkSuQmCC';
         const payload = {
             model: 'qwen3.6-plus',
             messages: [{
                 role: 'user',
                 content: [
-                    { type: 'image_url', image_url: { url: `data:image/png;base64,${testImageBase64}` } },
+                    { type: 'image_url', image_url: { url: `data:image/png;base64,${validTestImageBase64}` } },
                     { type: 'text', text: '简单描述这张图片' }
                 ]
             }]
