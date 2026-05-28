@@ -19,7 +19,7 @@
         .form-group { flex: 1; min-width: 180px; }
         label { font-weight: 500; color: #1e293b; font-size: 0.85rem; display: block; margin-bottom: 6px; }
         input, .radio-group { width: 100%; padding: 12px 14px; border-radius: 16px; border: 1px solid #cfdee9; background: #fff; }
-        .radio-group { display: flex; gap: 20px; background: #f8fafc; }
+        .radio-group { display: flex; gap: 20px; background: #f8fafc; justify-content: center; }
         .btn-primary { background: #1e3c72; color: white; border: none; padding: 12px 28px; border-radius: 32px; font-weight: 600; cursor: pointer; }
         .btn-secondary { background: #5b6e8c; }
         .filter-bar { margin: 24px 0 20px; display: flex; gap: 12px; flex-wrap: wrap; }
@@ -44,8 +44,8 @@
         .year-item-side { padding: 12px; margin-bottom: 8px; border-radius: 16px; cursor: pointer; }
         .year-active { background: #e2edf7; font-weight: 600; }
         .upload-area { flex: 1; background: #fff; border-radius: 24px; padding: 20px; border: 1px solid #e0d0ed; }
-        .file-drop { border: 2px dashed #b9d0e7; border-radius: 28px; padding: 20px; text-align: center; margin: 16px 0; cursor: pointer; background: #fefefe; }
-        .data-type-tabs { display: flex; gap: 16px; margin-bottom: 16px; }
+        .file-drop { border: 2px dashed #b9d0e7; border-radius: 20px; padding: 12px 20px; text-align: center; margin: 16px auto; cursor: pointer; background: #fefefe; max-width: 300px; display: block; }
+        .data-type-tabs { display: flex; gap: 16px; margin-bottom: 16px; justify-content: center; flex-wrap: wrap; }
         .data-type-tab { padding: 8px 20px; border-radius: 40px; background: #f1f5f9; cursor: pointer; }
         .data-type-tab.active { background: #1e3c72; color: white; }
         .status-table { width: 100%; margin-top: 20px; border-collapse: collapse; }
@@ -53,15 +53,15 @@
         .success-badge { color: #15803d; font-weight: bold; }
         .missing-badge { color: #b91c1c; font-weight: bold; }
         .param-panel { background: #f8fafc; border-radius: 20px; padding: 16px; margin-top: 20px; }
-        .param-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 12px; margin-top: 12px; }
+        .param-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 12px; }
         .param-item { display: flex; flex-direction: column; gap: 4px; }
         .param-item input { padding: 6px 10px; border-radius: 12px; border: 1px solid #cfdee9; }
         .prob-high { color: #15803d; font-weight: bold; }
         .prob-mid { color: #b45309; }
         .prob-low { color: #b91c1c; }
-        .stats-grid { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; max-width: 700px; }
-        .stat-card { flex: 1; background: #f8fafc; border-radius: 20px; padding: 12px 8px; text-align: center; min-width: 90px; }
-        .stat-number { font-size: 1.5rem; font-weight: 700; color: #1e3c72; }
+        .stats-grid { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 8px; }
+        .stat-card { flex: 1; background: #f8fafc; border-radius: 20px; padding: 16px; text-align: center; }
+        .stat-number { font-size: 2rem; font-weight: 700; color: #1e3c72; }
         .stat-label { font-size: 0.85rem; color: #4b5563; margin-top: 4px; }
         .preview-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 0.85rem; }
         .preview-table td, .preview-table th { border: 1px solid #e2e8f0; padding: 8px; text-align: left; }
@@ -128,6 +128,9 @@
                         <div class="param-item"><label>高密度扩大倍数</label><input type="number" step="0.1" v-model.number="params.highExpand" @change="saveParams"></div>
                         <div class="param-item"><label>低密度缩小倍数</label><input type="number" step="0.1" v-model.number="params.lowShrink" @change="saveParams"></div>
                         <div class="param-item"><label>高密度概率惩罚(%)</label><input type="number" step="1" v-model.number="params.highPenalty" @change="saveParams"></div>
+                        <div class="param-item"><label>冲一冲数量上限</label><input type="number" v-model.number="params.rushLimit" @change="saveParams"></div>
+                        <div class="param-item"><label>稳一稳数量上限</label><input type="number" v-model.number="params.safeLimit" @change="saveParams"></div>
+                        <div class="param-item"><label>保一保数量上限</label><input type="number" v-model.number="params.baoLimit" @change="saveParams"></div>
                     </div>
                     <div style="margin-top:16px; display:flex; gap:12px;">
                         <button class="btn-primary btn-secondary" @click="resetParams">恢复默认</button>
@@ -137,13 +140,14 @@
             </div>
 
             <!-- 推荐结果 -->
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap:12px;">
-                <h3>📊 推荐结果 <span style="font-size:14px;">共 {{ filteredColleges.length }} 所</span>
-                    <span style="font-size:13px; margin-left:12px;" class="filter-chip" :class="{active: filterType==='all'}" @click="filterType='all'">全部</span>
-                    <span style="font-size:13px; margin-left:6px;" class="filter-chip" :class="{active: filterType==='冲'}" @click="filterType='冲'">🔥 冲一冲</span>
-                    <span style="font-size:13px; margin-left:6px;" class="filter-chip" :class="{active: filterType==='稳'}" @click="filterType='稳'">✅ 稳一稳</span>
-                    <span style="font-size:13px; margin-left:6px;" class="filter-chip" :class="{active: filterType==='保'}" @click="filterType='保'">🛡️ 保一保</span>
-                </h3>
+            <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 16px;">
+                <h3 style="margin: 0;">📊 推荐结果 <span style="font-size:14px;">共 {{ filteredColleges.length }} 所</span></h3>
+                <div class="filter-bar" style="margin: 0;">
+                    <span class="filter-chip" :class="{active: filterType==='all'}" @click="filterType='all'">全部</span>
+                    <span class="filter-chip" :class="{active: filterType==='冲'}" @click="filterType='冲'">🔥 冲一冲</span>
+                    <span class="filter-chip" :class="{active: filterType==='稳'}" @click="filterType='稳'">✅ 稳一稳</span>
+                    <span class="filter-chip" :class="{active: filterType==='保'}" @click="filterType='保'">🛡️ 保一保</span>
+                </div>
             </div>
             <div v-if="filteredColleges.length === 0" style="text-align:center; padding:40px; color:#5b6e8c;">
                 暂无推荐结果。请确保已导入录取数据（后台→录取数据CSV）或使用内置示例。
@@ -203,18 +207,15 @@
                     <div v-for="y in ['2026','2025','2024','2023']" :key="y" class="year-item-side" :class="{'year-active': adminYear===y}" @click="adminYear=y">{{ y }}年</div>
                 </div>
                 <div class="upload-area">
-                    <div style="margin-bottom: 16px; text-align: center;">
-                        <video src="/Users/san/Desktop/baaa08bb370ac25ffda207b666397704.mov" autoplay muted loop playsinline style="width:960px; height:120px; object-fit:cover; border-radius:16px; box-shadow:0 8px 20px -8px rgba(0,0,0,0.15);"></video>
-                    </div>
-                    <h4 style="text-align:center;">📄 数据导入（录取数据 / 一分一段表）</h4>
+                    <h4 style="text-align:center;">📄 数据导入（录取数据 / 一分一段表 / 院校招生人数）</h4>
                     <div style="text-align:center;">当前年份：<strong>{{ adminYear }}</strong></div>
-                    <div class="radio-group" style="width:fit-content; margin:12px auto; text-align:center;"><label><input type="radio" value="物理类" v-model="adminCategory"> 物理类</label><label><input type="radio" value="历史类" v-model="adminCategory"> 历史类</label></div>
-                    <div class="data-type-tabs" style="justify-content:center;">
+                    <div class="radio-group" style="width:fit-content; margin:12px auto;"><label><input type="radio" value="物理类" v-model="adminCategory"> 物理类</label><label><input type="radio" value="历史类" v-model="adminCategory"> 历史类</label></div>
+                    <div class="data-type-tabs">
                         <div class="data-type-tab" :class="{active: dataType==='admission'}" @click="dataType='admission'">📚 录取数据CSV</div>
                         <div class="data-type-tab" :class="{active: dataType==='rank'}" @click="dataType='rank'">📊 位次表CSV</div>
                         <div class="data-type-tab" :class="{active: dataType==='enrollment'}" @click="dataType='enrollment'">👥 招生人数CSV</div>
                     </div>
-                    <div class="file-drop" @click="triggerFileUpload" style="text-align:center; max-width:500px; margin:16px auto;"><span style="font-size:1.2rem;">📂</span><br>点击导入 CSV<br><input type="file" ref="fileInput" style="display:none" accept=".csv" @change="handleFileUpload"></div>
+                    <div class="file-drop" @click="triggerFileUpload">📂 点击导入 CSV<br><input type="file" ref="fileInput" style="display:none" accept=".csv" @change="handleFileUpload"></div>
                     <div class="preview-toggle"><button class="btn-primary btn-secondary" @click="togglePreview">👁️ 预览数据</button><button class="clear-data-btn" @click="clearCurrentData">🗑️ 清空所有数据</button></div>
                     <div v-if="showPreview && currentPreviewData.length">
                         <div style="margin: 8px 0; display: flex; justify-content: space-between; align-items: center;">
@@ -6285,9 +6286,9 @@ storedRankTables["历史类"]["2026"] = JSON.parse(storedRankTables["历史类"]
 
 let dataStatus = {
     "2026": { phy: { ad: false, rank: true, en: false }, his: { ad: false, rank: true, en: false } },
-    "2025": { phy: { ad: true, rank: true, en: true }, his: { ad: true, rank: true, en: true } },
-    "2024": { phy: { ad: true, rank: true, en: true }, his: { ad: true, rank: true, en: true } },
-    "2023": { phy: { ad: true, rank: true, en: true }, his: { ad: true, rank: true, en: true } }
+    "2025": { phy: { ad: true, rank: false, en: true }, his: { ad: true, rank: false, en: true } },
+    "2024": { phy: { ad: true, rank: false, en: true }, his: { ad: true, rank: false, en: true } },
+    "2023": { phy: { ad: true, rank: false, en: true }, his: { ad: true, rank: false, en: true } }
 };
 
 function loadStoredData() {
@@ -6308,8 +6309,8 @@ function saveStoredData() {
     localStorage.setItem('gaokao_enrollment', JSON.stringify(storedEnrollment));
     localStorage.setItem('gaokao_dataStatus', JSON.stringify(dataStatus));
 }
-function saveParamsToStorage(p) { localStorage.setItem('gaokao_params', JSON.stringify(p)); }
-function loadParamsFromStorage() { try { let s = localStorage.getItem('gaokao_params'); return s ? JSON.parse(s) : null; } catch(e) { return null; } }
+function saveParamsToStorage(p, cat) { cat = cat || '物理类'; localStorage.setItem('gaokao_params_' + cat, JSON.stringify(p)); }
+function loadParamsFromStorage(cat) { cat = cat || '物理类'; try { let s = localStorage.getItem('gaokao_params_' + cat); return s ? JSON.parse(s) : null; } catch(e) { return null; } }
 loadStoredData();
 
 new Vue({
@@ -6396,27 +6397,28 @@ new Vue({
     methods: {
         initParams() {
             let m = this.category === '物理类' ? 372 : 137;
-            let saved = loadParamsFromStorage();
+            let saved = loadParamsFromStorage(this.category);
             if (saved) {
                 this.params = saved;
                 // 强制使用正确的科类中位同分人数，保留其他手动修改的参数
                 this.params.medianSameCount = m;
                 this.defaultParams = JSON.parse(JSON.stringify(this.params));
-                saveParamsToStorage(this.params);
+                saveParamsToStorage(this.params, this.category);
             } else {
-                this.params = { medianSameCount: m, highDensityThresh: 2.0, lowDensityThresh: 0.5, baseRush: 400, baseSafe: -500, highExpand: 1.5, lowShrink: 0.7, highPenalty: 10 };
+                this.params = { medianSameCount: m, highDensityThresh: 2.0, lowDensityThresh: 0.5, baseRush: 5000, baseSafe: -3000, rushLimit: 20, safeLimit: 20, baoLimit: 20, highExpand: 1.5, lowShrink: 0.7, highPenalty: 10 };
                 this.defaultParams = JSON.parse(JSON.stringify(this.params));
+                saveParamsToStorage(this.params, this.category);
             }
         },
-        saveParams() { saveParamsToStorage(this.params); this.defaultParams = JSON.parse(JSON.stringify(this.params)); },
+        saveParams() { saveParamsToStorage(this.params, this.category); this.defaultParams = JSON.parse(JSON.stringify(this.params)); },
         resetParams() {
             let m = this.category === '物理类' ? 372 : 137;
-            this.params = { medianSameCount: m, highDensityThresh: 2.0, lowDensityThresh: 0.5, baseRush: 400, baseSafe: -500, highExpand: 1.5, lowShrink: 0.7, highPenalty: 10 };
+            this.params = { medianSameCount: m, highDensityThresh: 2.0, lowDensityThresh: 0.5, baseRush: 5000, baseSafe: -3000, highExpand: 1.5, lowShrink: 0.7, highPenalty: 10 };
             this.defaultParams = JSON.parse(JSON.stringify(this.params));
-            saveParamsToStorage(this.params);
+            saveParamsToStorage(this.params, this.category);
             this.applyParams();
         },
-        applyParams() { saveParamsToStorage(this.params); if (this.rankInterval || this.rankInput) this.runRecommendation(); },
+        applyParams() { saveParamsToStorage(this.params, this.category); if (this.rankInterval || this.rankInput) this.runRecommendation(); },
         togglePreview() { this.showPreview = !this.showPreview; },
         updatePreviewData(rowIdx, colName, newVal) {
             let cat = this.adminCategory, yr = this.adminYear;
@@ -6571,6 +6573,24 @@ new Vue({
                 });
             }
             results.sort((a,b)=>Math.abs(a.rankDiff)-Math.abs(b.rankDiff));
+            // 限制冲一冲、稳一稳、保一保数量
+            let rushLimit = this.params.rushLimit || 999;
+            let safeLimit = this.params.safeLimit || 999;
+            let baoLimit = this.params.baoLimit || 999;
+            let rushCount = 0, safeCount = 0, baoCount = 0;
+            results = results.filter(r => {
+                if (r.matchLabel === '冲') {
+                    rushCount++;
+                    return rushCount <= rushLimit;
+                } else if (r.matchLabel === '稳') {
+                    safeCount++;
+                    return safeCount <= safeLimit;
+                } else if (r.matchLabel === '保') {
+                    baoCount++;
+                    return baoCount <= baoLimit;
+                }
+                return true;
+            });
             this.collegesList = results;
             this.page = 1;
         },
