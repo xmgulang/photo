@@ -79,7 +79,7 @@
 <div id="app">
     <div class="app-container">
         <div class="nav-header">
-            <div class="logo">🎓 2026福建高考大数据雷达扫描 <span style="font-size:0.7em;">v.5.0.3</span></div>
+            <div class="logo">🎓 2026福建高考大数据雷达扫描 <span style="font-size:0.7em;">v.5.0.5</span></div>
             <div class="nav-buttons">
                 <button class="nav-btn" :class="{active: currentDesktop === 'front'}" @click="currentDesktop='front'">志愿推荐系统</button>
                 <button class="nav-btn" :class="{active: currentDesktop === 'admin'}" @click="currentDesktop='admin'">数据管理中心</button>
@@ -162,18 +162,6 @@
                     </div>
                     <div>平均位次: {{ item.avgRank }} &nbsp; 位次差: {{ item.rankDiff }}</div>
                     <div>录取概率: <span :class="getProbClass(item.probability)">{{ item.probability }}%</span></div>
-                    <div v-if="item.showDetail" class="detail-expand">
-                        <div class="year-table">
-                            <div v-for="year in ['2025','2024','2023']" :key="year" class="year-item" v-if="item.yearData[year]">
-                                <strong>{{ year }}</strong><br>位次: {{ item.yearData[year].rank }}<br>分数: {{ item.yearData[year].score }}<br>招生: {{ item.yearData[year].enrollment !== null && item.yearData[year].enrollment !== undefined ? item.yearData[year].enrollment : '—' }}
-                            </div>
-                        </div>
-                        <div style="background:#eef3fc; border-radius:16px; padding:8px; margin-top:8px;">
-                            趋势: {{ item.trendText }}<br>
-                            <span v-if="item.trendRisk">{{ item.trendRisk }}</span>
-                        </div>
-                        <button class="btn-primary" style="margin-top:12px; padding:6px 14px;" @click.stop="addToVolunteer(item)">+ 加入志愿表</button>
-                    </div>
                 </div>
             </div>
             <div class="pagination" v-if="filteredColleges.length > 0">
@@ -185,7 +173,7 @@
 
         <!-- 志愿表弹窗 -->
         <div v-if="showVolunteerModal" style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1000; padding-top:60px;" @click.self="showVolunteerModal=false">
-            <div style="background:#fff; border-radius:20px; width:90%; max-width:800px; max-height:70vh; display:flex; flex-direction:column; padding:20px; margin-left:230px;">
+            <div style="background:#fff; border-radius:20px; width:90%; max-width:800px; max-height:460px; display:flex; flex-direction:column; padding:20px; margin-left:230px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                     <h4>📋 志愿表（{{ volunteerList.length }}所）</h4>
                     <button @click="showVolunteerModal=false" style="padding:6px 16px; border-radius:20px; border:none; background:#e0d0ed; cursor:pointer;">✕ 关闭</button>
@@ -249,7 +237,7 @@
     </div>
 
     <!-- 预览数据弹窗 -->
-    <div v-if="showPreviewModal" style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1000; padding-top:120px;" @click.self="showPreviewModal=false">
+    <div v-if="showPreviewModal" style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1000; padding-top:360px;" @click.self="showPreviewModal=false">
         <div style="background:#fff; border-radius:20px; width:90%; max-width:1000px; max-height:80vh; display:flex; flex-direction:column; padding:20px; margin-left:230px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                 <h4>📊 数据预览 - {{ adminCategory }} {{ adminYear }}年</h4>
@@ -272,6 +260,33 @@
                 <span style="padding:6px 16px;">第 {{ previewPage }} / {{ previewTotalPages }} 页</span>
                 <button @click="previewPage++" :disabled="previewPage === previewTotalPages" style="padding:6px 12px; border-radius:16px; border:none; background:#f1f5f9; cursor:pointer;">›</button>
                 <button @click="previewPage = previewTotalPages" :disabled="previewPage === previewTotalPages" style="padding:6px 12px; border-radius:16px; border:none; background:#f1f5f9; cursor:pointer;">»</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 学校详情弹窗 -->
+    <div v-if="showDetailModal" style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1000; padding-top:360px;" @click.self="showDetailModal=false">
+        <div v-if="currentDetailItem" style="background:#fff; border-radius:20px; width:90%; max-width:500px; max-height:460px; display:flex; flex-direction:column; padding:20px; margin-left:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <h4>📖 {{ currentDetailItem.college }}</h4>
+                <button @click="showDetailModal=false" style="padding:6px 16px; border-radius:20px; border:none; background:#e0d0ed; cursor:pointer;">✕ 关闭</button>
+            </div>
+            <div style="flex:1; overflow-y:auto;">
+                <div style="background:#f9fbfe; border-radius:16px; padding:16px; margin-bottom:16px;">
+                    <div style="color:#4b5565; margin-bottom:8px;">{{ currentDetailItem.major }}</div>
+                    <div>平均位次: {{ currentDetailItem.avgRank }} &nbsp; 位次差: {{ currentDetailItem.rankDiff }}</div>
+                    <div>录取概率: <span :class="getProbClass(currentDetailItem.probability)">{{ currentDetailItem.probability }}%</span></div>
+                </div>
+                <div class="year-table">
+                    <div v-for="year in ['2025','2024','2023']" :key="year" class="year-item" v-if="currentDetailItem.yearData[year]">
+                        <strong>{{ year }}</strong><br>位次: {{ currentDetailItem.yearData[year].rank }}<br>分数: {{ currentDetailItem.yearData[year].score }}<br>招生: {{ currentDetailItem.yearData[year].enrollment !== null && currentDetailItem.yearData[year].enrollment !== undefined ? currentDetailItem.yearData[year].enrollment : '—' }}
+                    </div>
+                </div>
+                <div style="background:#eef3fc; border-radius:16px; padding:12px; margin-top:16px;">
+                    <div>趋势: {{ currentDetailItem.trendText }}</div>
+                    <div v-if="currentDetailItem.trendRisk" style="color:#d97706; margin-top:4px;">{{ currentDetailItem.trendRisk }}</div>
+                </div>
+                <button class="btn-primary" style="margin-top:16px; width:100%; padding:12px; border-radius:16px;" @click="addToVolunteer(currentDetailItem); showDetailModal=false;">+ 加入志愿表</button>
             </div>
         </div>
     </div>
@@ -6355,7 +6370,9 @@ new Vue({
         dataStatus: dataStatus,
         showPreview: false,
         showPreviewModal: false,
-        showVolunteerModal: false
+        showVolunteerModal: false,
+        showDetailModal: false,
+        currentDetailItem: null
     },
     computed: {
         filteredColleges() { return this.filterType==='all' ? this.collegesList : this.collegesList.filter(c=>c.matchLabel===this.filterType); },
@@ -6739,7 +6756,7 @@ new Vue({
             reader.readAsText(file, 'UTF-8');
             this.$refs.fileInput.value = '';
         },
-        toggleDetail(item) { item.showDetail = !item.showDetail; },
+        toggleDetail(item) { this.currentDetailItem = item; this.showDetailModal = true; },
         addToVolunteer(item) {
             if (!this.volunteerList.find(v=>v.college===item.college && v.major===item.major)) {
                 this.volunteerList.push({ college: item.college, major: item.major, matchLabel: item.matchLabel, probability: item.probability });
