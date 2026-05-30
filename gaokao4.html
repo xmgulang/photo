@@ -6656,11 +6656,28 @@ new Vue({
                     else { trendIcon='→'; trendText='几乎不变'; trendRisk='三年稳定，放心填报'; }
                 }
                 let prob = 50;
-                if (userRank < avg) prob = 70;
-                else if (userRank > avg) prob = 30;
-                if (localDensity > this.params.highDensityThresh) prob -= this.params.highPenalty;
-                else if (localDensity < this.params.lowDensityThresh) prob += 10;
-                prob = Math.min(95, Math.max(5, prob));
+                // 根据位次差计算基础概率
+                let range = baseRush - baseSafe; // 5000 - (-3000) = 8000
+                if (diff <= baseSafe) {
+                    // 保：考生明显好于院校，概率 85-95%
+                    let safeRatio = Math.min(1, Math.abs(diff) / range);
+                    prob = 85 + Math.floor(safeRatio * 10);
+                } else if (diff >= baseRush) {
+                    // 冲：考生略差于院校，概率 10-35%
+                    let rushRatio = Math.min(1, diff / range);
+                    prob = 35 - Math.floor(rushRatio * 25);
+                } else {
+                    // 稳：考生与院校相当，概率 55-75%
+                    let stableRatio = (diff - baseSafe) / range;
+                    prob = 55 + Math.floor(stableRatio * 20);
+                }
+                // 密度调整
+                if (localDensity > this.params.highDensityThresh) {
+                    prob -= this.params.highPenalty;
+                } else if (localDensity < this.params.lowDensityThresh) {
+                    prob += 5;
+                }
+                prob = Math.min(98, Math.max(5, prob));
                 results.push({
                     id: key, college: item.college, major: item.major, avgRank: avg, rankDiff: diff,
                     matchLabel: label, badgeClass: badge, trendIcon, trendText, trendRisk,
