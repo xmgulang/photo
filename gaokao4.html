@@ -15,7 +15,7 @@
         .desktop { padding: 28px 32px; }
         .desktop-hidden { display: none; }
         .card { background: #fff; border-radius: 24px; border: 1px solid #e0d0ed; padding: 24px; margin-bottom: 28px; }
-        .form-grid { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-end; }
+        .form-grid { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-end; overflow: visible; position: relative; z-index: 10; }
         .form-group { flex: 1; min-width: 180px; }
         label { font-weight: 500; color: #1e293b; font-size: 0.85rem; display: block; margin-bottom: 6px; }
         input, .radio-group { width: 100%; padding: 12px 14px; border-radius: 16px; border: 1px solid #cfdee9; background: #fff; }
@@ -61,7 +61,7 @@
         .prob-high { color: #15803d; font-weight: bold; }
         .prob-mid { color: #b45309; }
         .prob-low { color: #b91c1c; }
-        .stats-grid { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; max-width: 700px; }
+        .stats-grid { display: flex; gap: 16px; flex-wrap: nowrap; margin-bottom: 8px; max-width: 900px; overflow-x: auto; }
         .stat-card { flex: 1; background: #f8fafc; border-radius: 20px; padding: 12px 8px; text-align: center; min-width: 90px; }
         .stat-number { font-size: 1.5rem; font-weight: 700; color: #1e3c72; }
         .stat-label { font-size: 0.85rem; color: #4b5563; margin-top: 4px; }
@@ -70,7 +70,7 @@
         .preview-table td[contenteditable="true"] { background-color: #fff9c4; }
         .clear-data-btn { background: #b91c1c; color: white; border: none; padding: 6px 16px; border-radius: 24px; margin-top: 8px; cursor: pointer; }
         .preview-toggle { margin: 12px 0; display: flex; gap: 12px; align-items: center; }
-        .pagination { display: flex; justify-content: center; gap: 16px; margin: 20px 0; }
+        .pagination { display: flex; justify-content: center; gap: 16px; margin: 5px 0 0 0; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -92,13 +92,14 @@
                 <h3>📋 考生信息录入</h3>
                 <div class="form-grid">
                     <div class="form-group"><label>科类</label><div class="radio-group"><label><input type="radio" value="物理类" v-model="category"> 物理类</label><label><input type="radio" value="历史类" v-model="category"> 历史类</label></div></div>
-                    <div class="form-group"><label>位次（2026年）</label><input type="number" v-model="rankInput" placeholder="直接输入位次" @input="onRankDirect"></div>
-                    <div class="form-group"><label>分数（自动换算位次区间）</label><input type="number" v-model="scoreInput" placeholder="输入分数" @input="convertScoreToRank"></div>
+                    <div class="form-group"><label>位次（2026年）</label>
+                        <input type="number" v-model="rankInput" placeholder="直接输入位次" @input="onRankDirect">
+                    </div>
+                    <div class="form-group"><label>分数（2026年）</label>
+                        <input type="number" v-model="scoreInput" placeholder="请输入分数" @keyup.enter="convertScoreToRank" @blur="convertScoreToRank">
+                    </div>
                     <div class="form-group"><label>参考年份</label><div style="display: flex; gap: 16px;"><label><input type="checkbox" v-model="refYears" value="2025"> 2025</label><label><input type="checkbox" v-model="refYears" value="2024"> 2024</label><label><input type="checkbox" v-model="refYears" value="2023"> 2023</label></div></div>
                     <div class="form-group"><button class="btn-primary" @click="runRecommendation">🔍 开始推荐</button></div>
-                </div>
-                <div v-if="rankInterval" style="margin-top:16px; background:#f1f5f9; border-radius:16px; padding:12px;">
-                    📊 位次区间：<strong>{{ rankInterval.min }} ~ {{ rankInterval.max }}</strong> &nbsp;|&nbsp; 同分人数：{{ rankInterval.sameCount }} &nbsp;|&nbsp; 局部竞争密度：{{ (rankStats.localDensity || 1).toFixed(2) }} 倍均值
                 </div>
             </div>
 
@@ -108,9 +109,10 @@
                 <div v-if="rankStats.totalStudents > 0" class="stats-grid">
                     <div class="stat-card"><div class="stat-number">{{ rankStats.totalStudents.toLocaleString() }}</div><div class="stat-label">考生总数</div></div>
                     <div class="stat-card"><div class="stat-number">{{ rankStats.sameCountForRank || '-' }}</div><div class="stat-label">同位次人数</div></div>
+                    <div class="stat-card" style="min-width:180px;"><div class="stat-number">{{ rankStats.rankRange }}</div><div class="stat-label">位次范围</div></div>
                     <div class="stat-card"><div class="stat-number">{{ rankStats.medianSameCount }}</div><div class="stat-label">全科类中位</div></div>
                     <div class="stat-card"><div class="stat-number">{{ rankStats.maxSameCount }}</div><div class="stat-label">峰值同分</div></div>
-                    <div class="stat-card"><div class="stat-number">{{ (rankStats.localDensity || 1).toFixed(2) }}x</div><div class="stat-label">局部竞争密度</div></div>
+                    <div class="stat-card" style="min-width:90px;"><div class="stat-number" style="font-size:1.2rem;">{{ (rankStats.localDensity || 1).toFixed(2) }}x</div><div class="stat-label">局部竞争密度</div></div>
                 </div>
                 <div v-else style="text-align:center; padding:16px; color:#5b6e8c;">ℹ️ 暂未导入{{ category }}的2026年一分一段表，请前往后台上传CSV。</div>
             </div>
@@ -164,7 +166,7 @@
                     <div>录取概率: <span :class="getProbClass(item.probability)">{{ item.probability }}%</span></div>
                 </div>
             </div>
-            <div class="pagination" v-if="filteredColleges.length > 0">
+            <div class="pagination" v-if="filteredColleges.length > 0" style="margin-bottom: 0; padding-bottom: 0;">
                 <button @click="page--" :disabled="page===1">← 上一页</button>
                 <span>第 {{ page }} / {{ totalPages }} 页</span>
                 <button @click="page++" :disabled="page===totalPages">下一页 →</button>
@@ -6352,6 +6354,8 @@ new Vue({
         category: '物理类',
         rankInput: 15000,
         scoreInput: '',
+        rankFromScoreDisplay: null,
+        rankToScoreDisplay: null,
         refYears: ['2025','2024','2023'],
         filterType: 'all',
         page: 1,
@@ -6402,18 +6406,21 @@ new Vue({
         },
         rankStats() {
             let map = storedRankTables[this.category]?.['2026'];
-            if (!map || Object.keys(map).length === 0) return { totalStudents: 0, medianSameCount: 0, maxSameCount: 0, sameCountForRank: 0, localDensity: 1 };
+            if (!map || Object.keys(map).length === 0) return { totalStudents: 0, medianSameCount: 0, maxSameCount: 0, sameCountForRank: 0, localDensity: 1, rankRange: '-' };
             let sameCounts = [];
             let maxCumulative = 0;
             let sameCountForRank = 0;
+            let rankRange = '-';
             let userRank = this.rankInput ? parseInt(this.rankInput) : 0;
             for (let score in map) {
                 let info = map[score];
                 sameCounts.push(info.same_count);
                 let top = info.rank_min + info.same_count - 1;
                 if (top > maxCumulative) maxCumulative = top;
-                if (userRank >= info.rank_min && userRank <= top) {
+                let bestRank = info.rank_min - info.same_count + 1;
+                if (userRank >= bestRank && userRank <= info.rank_min) {
                     sameCountForRank = info.same_count;
+                    rankRange = bestRank + '-' + info.rank_min;
                 }
             }
             sameCounts.sort((a,b)=>a-b);
@@ -6421,7 +6428,7 @@ new Vue({
             // 计算局部竞争密度：考生所在分数段的同分人数 / 全科类平均同分人数
             let avgSameCount = sameCounts.reduce((a,b)=>a+b,0) / sameCounts.length;
             let localDensity = avgSameCount > 0 ? sameCountForRank / avgSameCount : 1;
-            return { totalStudents: maxCumulative, medianSameCount: Math.round(median), maxSameCount: Math.max(...sameCounts), sameCountForRank, localDensity };
+            return { totalStudents: maxCumulative, medianSameCount: Math.round(median), maxSameCount: Math.max(...sameCounts), sameCountForRank, localDensity, rankRange };
         }
     },
     mounted() {
@@ -6580,22 +6587,40 @@ new Vue({
             }
             saveStoredData();
         },
-        onRankDirect() { this.scoreInput = ''; this.runRecommendation(); },
-        convertScoreToRank() {
-            if (!this.scoreInput) return;
+        onRankDirect() { this.displayScoreForRank(); this.runRecommendation(); },
+        displayScoreForRank() {
+            if (!this.rankInput) { this.rankToScoreDisplay = null; this.scoreInput = ''; return; }
             let table = storedRankTables[this.category]?.['2026'];
-            if (!table || Object.keys(table).length===0) { alert('请先导入2026年一分一段表'); return; }
-            let inputScore = parseInt(this.scoreInput);
-            let info = table[inputScore];
-            if (!info) {
-                alert('该分数不在位次表中，请检查');
-                return;
+            if (!table || Object.keys(table).length===0) { this.rankToScoreDisplay = null; this.scoreInput = ''; return; }
+            let userRank = parseInt(this.rankInput);
+            for (let [score, info] of Object.entries(table)) {
+                let minRank = info.rank_min;
+                let sameCount = info.same_count;
+                let bestRank = minRank - sameCount + 1; // 最好位次（最小数字）
+                if (userRank >= bestRank && userRank <= minRank) {
+                    this.rankToScoreDisplay = parseInt(score);
+                    this.scoreInput = parseInt(score);
+                    return;
+                }
             }
+            this.rankToScoreDisplay = null;
+            this.scoreInput = '';
+        },
+        testInput() {
+            console.log('testInput被触发, scoreInput=', this.scoreInput);
+        },
+        convertScoreToRank() {
+            if (!this.scoreInput) { this.rankFromScoreDisplay = null; return; }
+            let table = storedRankTables[this.category]?.['2026'];
+            if (!table || Object.keys(table).length===0) { return; }
+            let inputScore = parseInt(this.scoreInput);
+            let info = table[inputScore] || table[inputScore.toString()];
+            if (!info) { this.rankFromScoreDisplay = null; return; }
             let same = info.same_count;
             let minRank = info.rank_min;
             let maxRank = minRank + same - 1;
-            let density = same / this.params.medianSameCount;
-            this.rankInterval = { min: minRank, max: maxRank, sameCount: same, densityRatio: density };
+            this.rankFromScoreDisplay = { min: minRank, max: maxRank, sameCount: same };
+            this.rankInterval = { min: minRank, max: maxRank, sameCount: same };
             this.rankInput = minRank;
             this.runRecommendation();
         },
@@ -6791,7 +6816,7 @@ new Vue({
         getProbClass(prob) { if (prob>=70) return 'prob-high'; if (prob>=40) return 'prob-mid'; return 'prob-low'; }
     },
     watch: {
-        category() { this.initParams(); this.rankInterval = null; this.rankInput = 15000; this.scoreInput = ''; this.runRecommendation(); },
+        category() { this.initParams(); this.rankInterval = null; this.rankInput = 15000; this.scoreInput = ''; this.rankFromScoreDisplay = null; this.rankToScoreDisplay = null; this.runRecommendation(); },
         adminYear() { this.showPreview = false; this.previewPage = 1; },
         adminCategory() { this.showPreview = false; this.previewPage = 1; },
         dataType() { this.showPreview = false; this.previewPage = 1; }
