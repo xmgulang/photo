@@ -93,10 +93,10 @@
                 <div class="form-grid">
                     <div class="form-group"><label>科类</label><div class="radio-group"><label><input type="radio" value="物理类" v-model="category"> 物理类</label><label><input type="radio" value="历史类" v-model="category"> 历史类</label></div></div>
                     <div class="form-group"><label>位次（2026年）</label>
-                        <input type="number" v-model="rankInput" placeholder="直接输入位次" @input="onRankDirect">
+                        <input type="text" class="numeric-only" :value="rankInput" @input="cleanRankInput" placeholder="直接输入位次" autocomplete="off" maxlength="10">
                     </div>
                     <div class="form-group"><label>分数（2026年）</label>
-                        <input type="number" v-model="scoreInput" placeholder="请输入分数" @keyup.enter="convertScoreToRank" @blur="convertScoreToRank">
+                        <input type="text" class="numeric-only" :value="scoreInput" @input="cleanScoreInput" @keyup.enter="convertScoreToRank" @blur="convertScoreToRank" placeholder="请输入分数" autocomplete="off" maxlength="5">
                     </div>
                     <div class="form-group"><label>参考年份</label><div style="display: flex; gap: 16px;"><label><input type="checkbox" v-model="refYears" value="2025"> 2025</label><label><input type="checkbox" v-model="refYears" value="2024"> 2024</label><label><input type="checkbox" v-model="refYears" value="2023"> 2023</label></div></div>
                     <div class="form-group"><button class="btn-primary" @click="runRecommendation">🔍 开始推荐</button></div>
@@ -124,17 +124,17 @@
                 </div>
                 <div v-show="showParams" class="param-panel">
                     <div class="param-grid">
-                        <div class="param-item" id="median-item"><label>科类中位同分人数</label><input type="number" v-model.number="params.medianSameCount" @change="saveParams"></div>
-                        <div class="param-item"><label>高密度阈值(倍)</label><input type="number" step="0.1" v-model.number="params.highDensityThresh" @change="saveParams"></div>
-                        <div class="param-item"><label>低密度阈值(倍)</label><input type="number" step="0.1" v-model.number="params.lowDensityThresh" @change="saveParams"></div>
-                        <div class="param-item"><label>冲基础位次差</label><input type="number" v-model.number="params.baseRush" @change="saveParams"></div>
-                        <div class="param-item"><label>稳下限位次差</label><input type="number" v-model.number="params.baseSafe" @change="saveParams"></div>
-                        <div class="param-item"><label>高密度扩大倍数</label><input type="number" step="0.1" v-model.number="params.highExpand" @change="saveParams"></div>
-                        <div class="param-item"><label>低密度缩小倍数</label><input type="number" step="0.1" v-model.number="params.lowShrink" @change="saveParams"></div>
-                        <div class="param-item"><label>高密度概率惩罚(%)</label><input type="number" step="1" v-model.number="params.highPenalty" @change="saveParams"></div>
-                        <div class="param-item"><label>冲一冲数量上限</label><input type="number" v-model.number="params.maxRush" @change="saveParams"></div>
-                        <div class="param-item"><label>稳一稳数量上限</label><input type="number" v-model.number="params.maxStable" @change="saveParams"></div>
-                        <div class="param-item"><label>保一保数量上限</label><input type="number" v-model.number="params.maxSafe" @change="saveParams"></div>
+                        <div class="param-item" id="median-item"><label>科类中位同分人数</label><input type="text" :value="params.medianSameCount" @input="$event.target.value=$event.target.value.replace(/[^0-9]/g,''); params.medianSameCount=parseInt($event.target.value)||0; saveParams()"></div>
+                        <div class="param-item"><label>高密度阈值(倍)</label><input type="text" :value="params.highDensityThresh" @input="$event.target.value=$event.target.value.replace(/[^0-9.]/g,''); params.highDensityThresh=parseFloat($event.target.value)||0; saveParams()"></div>
+                        <div class="param-item"><label>低密度阈值(倍)</label><input type="text" :value="params.lowDensityThresh" @input="$event.target.value=$event.target.value.replace(/[^0-9.]/g,''); params.lowDensityThresh=parseFloat($event.target.value)||0; saveParams()"></div>
+                        <div class="param-item"><label>冲基础位次差</label><input type="text" :value="params.baseRush" @input="$event.target.value=$event.target.value.replace(/[^0-9-]/g,''); params.baseRush=parseInt($event.target.value)||0; saveParams()"></div>
+                        <div class="param-item"><label>稳下限位次差</label><input type="text" :value="params.baseSafe" @input="$event.target.value=$event.target.value.replace(/[^0-9-]/g,''); params.baseSafe=parseInt($event.target.value)||0; saveParams()"></div>
+                        <div class="param-item"><label>高密度扩大倍数</label><input type="text" :value="params.highExpand" @input="$event.target.value=$event.target.value.replace(/[^0-9.]/g,''); params.highExpand=parseFloat($event.target.value)||0; saveParams()"></div>
+                        <div class="param-item"><label>低密度缩小倍数</label><input type="text" :value="params.lowShrink" @input="$event.target.value=$event.target.value.replace(/[^0-9.]/g,''); params.lowShrink=parseFloat($event.target.value)||0; saveParams()"></div>
+                        <div class="param-item"><label>高密度概率惩罚(%)</label><input type="text" :value="params.highPenalty" @input="$event.target.value=$event.target.value.replace(/[^0-9]/g,''); params.highPenalty=parseInt($event.target.value)||0; saveParams()"></div>
+                        <div class="param-item"><label>冲一冲数量上限</label><input type="text" :value="params.maxRush" @input="$event.target.value=$event.target.value.replace(/[^0-9]/g,''); params.maxRush=parseInt($event.target.value)||0; saveParams()"></div>
+                        <div class="param-item"><label>稳一稳数量上限</label><input type="text" :value="params.maxStable" @input="$event.target.value=$event.target.value.replace(/[^0-9]/g,''); params.maxStable=parseInt($event.target.value)||0; saveParams()"></div>
+                        <div class="param-item"><label>保一保数量上限</label><input type="text" :value="params.maxSafe" @input="$event.target.value=$event.target.value.replace(/[^0-9]/g,''); params.maxSafe=parseInt($event.target.value)||0; saveParams()"></div>
                     </div>
                     <div style="margin-top:16px; display:flex; gap:12px;">
                         <button class="btn-primary btn-secondary" @click="resetParams">恢复默认</button>
@@ -6352,7 +6352,7 @@ new Vue({
     data: {
         currentDesktop: 'front',
         category: '物理类',
-        rankInput: 15000,
+        rankInput: '15000',
         scoreInput: '',
         rankFromScoreDisplay: null,
         rankToScoreDisplay: null,
@@ -6588,6 +6588,8 @@ new Vue({
             saveStoredData();
         },
         onRankDirect() { this.displayScoreForRank(); this.runRecommendation(); },
+        cleanRankInput(e) { this.rankInput = e.target.value.replace(/[^0-9]/g, ''); this.displayScoreForRank(); this.runRecommendation(); },
+        cleanScoreInput(e) { this.scoreInput = e.target.value.replace(/[^0-9]/g, ''); },
         displayScoreForRank() {
             if (!this.rankInput) { this.rankToScoreDisplay = null; this.scoreInput = ''; return; }
             let table = storedRankTables[this.category]?.['2026'];
@@ -6621,7 +6623,7 @@ new Vue({
             let maxRank = minRank + same - 1;
             this.rankFromScoreDisplay = { min: minRank, max: maxRank, sameCount: same };
             this.rankInterval = { min: minRank, max: maxRank, sameCount: same };
-            this.rankInput = minRank;
+            this.rankInput = String(minRank);
             this.runRecommendation();
         },
         runRecommendation() {
@@ -6815,8 +6817,20 @@ new Vue({
         },
         getProbClass(prob) { if (prob>=70) return 'prob-high'; if (prob>=40) return 'prob-mid'; return 'prob-low'; }
     },
+    mounted() {
+        document.addEventListener('keydown', function(e) {
+            var el = e.target;
+            if (el.tagName !== 'INPUT' || el.type !== 'text') return;
+            if (!el.classList.contains('numeric-only') && !el.closest('.param-item')) return;
+            if (e.key.length !== 1) return;
+            if (e.ctrlKey || e.metaKey || e.altKey) return;
+            if (/[0-9]/.test(e.key)) return;
+            if (el.classList.contains('numeric-only') && (e.key === '.' || e.key === '-')) return;
+            e.preventDefault();
+        }, true);
+    },
     watch: {
-        category() { this.initParams(); this.rankInterval = null; this.rankInput = 15000; this.scoreInput = ''; this.rankFromScoreDisplay = null; this.rankToScoreDisplay = null; this.runRecommendation(); },
+        category() { this.initParams(); this.rankInterval = null; this.rankInput = '15000'; this.scoreInput = ''; this.rankFromScoreDisplay = null; this.rankToScoreDisplay = null; this.runRecommendation(); },
         adminYear() { this.showPreview = false; this.previewPage = 1; },
         adminCategory() { this.showPreview = false; this.previewPage = 1; },
         dataType() { this.showPreview = false; this.previewPage = 1; }
