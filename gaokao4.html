@@ -19,7 +19,7 @@
         .form-group { flex: 1; min-width: 180px; }
         label { font-weight: 500; color: #1e293b; font-size: 0.85rem; display: block; margin-bottom: 6px; }
         input, .radio-group { width: 100%; padding: 12px 14px; border-radius: 16px; border: 1px solid #cfdee9; background: #fff; }
-        .radio-group { display: flex; gap: 20px; background: #f8fafc; }
+        .radio-group { display: flex; gap: 20px; background: #f8fafc; justify-content: center; align-items: center; }
         .btn-primary { background: #1e3c72; color: white; border: none; padding: 12px 28px; border-radius: 32px; font-weight: 600; cursor: pointer; }
         .btn-secondary { background: #5b6e8c; }
         .filter-bar { margin: 24px 0 20px; display: flex; gap: 12px; flex-wrap: wrap; }
@@ -61,8 +61,8 @@
         .prob-high { color: #15803d; font-weight: bold; }
         .prob-mid { color: #b45309; }
         .prob-low { color: #b91c1c; }
-        .stats-grid { display: flex; gap: 16px; flex-wrap: nowrap; margin-bottom: 8px; max-width: 900px; overflow-x: auto; }
-        .stat-card { flex: 1; background: #f8fafc; border-radius: 20px; padding: 12px 8px; text-align: center; min-width: 90px; }
+        .stats-grid { display: flex; gap: 12px; flex-wrap: nowrap; margin-bottom: 8px; overflow-x: auto; }
+        .stat-card { flex: 1; background: #f8fafc; border-radius: 20px; padding: 10px 6px; text-align: center; min-width: 80px; }
         .stat-number { font-size: 1.5rem; font-weight: 700; color: #1e3c72; }
         .stat-label { font-size: 0.85rem; color: #4b5563; margin-top: 4px; }
         .preview-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 0.85rem; }
@@ -70,7 +70,7 @@
         .preview-table td[contenteditable="true"] { background-color: #fff9c4; }
         .clear-data-btn { background: #b91c1c; color: white; border: none; padding: 6px 16px; border-radius: 24px; margin-top: 8px; cursor: pointer; }
         .preview-toggle { margin: 12px 0; display: flex; gap: 12px; align-items: center; }
-        .pagination { display: flex; justify-content: center; gap: 16px; margin: 5px 0 0 0; }
+        .pagination { display: flex; justify-content: center; gap: 16px; margin: 20px 0; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -93,10 +93,10 @@
                 <div class="form-grid">
                     <div class="form-group"><label>科类</label><div class="radio-group"><label><input type="radio" value="物理类" v-model="category"> 物理类</label><label><input type="radio" value="历史类" v-model="category"> 历史类</label></div></div>
                     <div class="form-group"><label>位次（2026年）</label>
-                        <input type="text" class="numeric-only" :value="rankInput" @input="cleanRankInput" placeholder="直接输入位次" autocomplete="off" maxlength="10">
+                        <input type="text" v-model="rankInput" placeholder="直接输入位次" @input="rankInput = rankInput.replace(/[^0-9]/g, ''); onRankDirect()">
                     </div>
                     <div class="form-group"><label>分数（2026年）</label>
-                        <input type="text" class="numeric-only" :value="scoreInput" @input="cleanScoreInput" @keyup.enter="convertScoreToRank" @blur="convertScoreToRank" placeholder="请输入分数" autocomplete="off" maxlength="5">
+                        <input type="text" v-model="scoreInput" placeholder="请输入分数" @input="scoreInput = scoreInput.replace(/[^0-9]/g, '')" @keyup.enter="convertScoreToRank" @blur="convertScoreToRank">
                     </div>
                     <div class="form-group"><label>参考年份</label><div style="display: flex; gap: 16px;"><label><input type="checkbox" v-model="refYears" value="2025"> 2025</label><label><input type="checkbox" v-model="refYears" value="2024"> 2024</label><label><input type="checkbox" v-model="refYears" value="2023"> 2023</label></div></div>
                     <div class="form-group"><button class="btn-primary" @click="runRecommendation">🔍 开始推荐</button></div>
@@ -112,7 +112,7 @@
                     <div class="stat-card" style="min-width:180px;"><div class="stat-number">{{ rankStats.rankRange }}</div><div class="stat-label">位次范围</div></div>
                     <div class="stat-card"><div class="stat-number">{{ rankStats.medianSameCount }}</div><div class="stat-label">全科类中位</div></div>
                     <div class="stat-card"><div class="stat-number">{{ rankStats.maxSameCount }}</div><div class="stat-label">峰值同分</div></div>
-                    <div class="stat-card" style="min-width:90px;"><div class="stat-number" style="font-size:1.2rem;">{{ (rankStats.localDensity || 1).toFixed(2) }}x</div><div class="stat-label">局部竞争密度</div></div>
+                    <div class="stat-card"><div class="stat-number">{{ (rankStats.localDensity || 1).toFixed(2) }}x</div><div class="stat-label">局部竞争密度</div></div>
                 </div>
                 <div v-else style="text-align:center; padding:16px; color:#5b6e8c;">ℹ️ 暂未导入{{ category }}的2026年一分一段表，请前往后台上传CSV。</div>
             </div>
@@ -124,17 +124,17 @@
                 </div>
                 <div v-show="showParams" class="param-panel">
                     <div class="param-grid">
-                        <div class="param-item" id="median-item"><label>科类中位同分人数</label><input type="text" :value="params.medianSameCount" @input="$event.target.value=$event.target.value.replace(/[^0-9]/g,''); params.medianSameCount=parseInt($event.target.value)||0; saveParams()"></div>
-                        <div class="param-item"><label>高密度阈值(倍)</label><input type="text" :value="params.highDensityThresh" @input="$event.target.value=$event.target.value.replace(/[^0-9.]/g,''); params.highDensityThresh=parseFloat($event.target.value)||0; saveParams()"></div>
-                        <div class="param-item"><label>低密度阈值(倍)</label><input type="text" :value="params.lowDensityThresh" @input="$event.target.value=$event.target.value.replace(/[^0-9.]/g,''); params.lowDensityThresh=parseFloat($event.target.value)||0; saveParams()"></div>
-                        <div class="param-item"><label>冲基础位次差</label><input type="text" :value="params.baseRush" @input="$event.target.value=$event.target.value.replace(/[^0-9-]/g,''); params.baseRush=parseInt($event.target.value)||0; saveParams()"></div>
-                        <div class="param-item"><label>稳下限位次差</label><input type="text" :value="params.baseSafe" @input="$event.target.value=$event.target.value.replace(/[^0-9-]/g,''); params.baseSafe=parseInt($event.target.value)||0; saveParams()"></div>
-                        <div class="param-item"><label>高密度扩大倍数</label><input type="text" :value="params.highExpand" @input="$event.target.value=$event.target.value.replace(/[^0-9.]/g,''); params.highExpand=parseFloat($event.target.value)||0; saveParams()"></div>
-                        <div class="param-item"><label>低密度缩小倍数</label><input type="text" :value="params.lowShrink" @input="$event.target.value=$event.target.value.replace(/[^0-9.]/g,''); params.lowShrink=parseFloat($event.target.value)||0; saveParams()"></div>
-                        <div class="param-item"><label>高密度概率惩罚(%)</label><input type="text" :value="params.highPenalty" @input="$event.target.value=$event.target.value.replace(/[^0-9]/g,''); params.highPenalty=parseInt($event.target.value)||0; saveParams()"></div>
-                        <div class="param-item"><label>冲一冲数量上限</label><input type="text" :value="params.maxRush" @input="$event.target.value=$event.target.value.replace(/[^0-9]/g,''); params.maxRush=parseInt($event.target.value)||0; saveParams()"></div>
-                        <div class="param-item"><label>稳一稳数量上限</label><input type="text" :value="params.maxStable" @input="$event.target.value=$event.target.value.replace(/[^0-9]/g,''); params.maxStable=parseInt($event.target.value)||0; saveParams()"></div>
-                        <div class="param-item"><label>保一保数量上限</label><input type="text" :value="params.maxSafe" @input="$event.target.value=$event.target.value.replace(/[^0-9]/g,''); params.maxSafe=parseInt($event.target.value)||0; saveParams()"></div>
+                        <div class="param-item" id="median-item"><label>科类中位同分人数</label><input type="text" v-model="params.medianSameCount" @input="params.medianSameCount = params.medianSameCount.replace(/[^0-9]/g, '')" @change="saveParams"></div>
+                        <div class="param-item"><label>高密度阈值(倍)</label><input type="text" v-model="params.highDensityThresh" @input="params.highDensityThresh = params.highDensityThresh.replace(/[^0-9.]/g, '')" @change="saveParams"></div>
+                        <div class="param-item"><label>低密度阈值(倍)</label><input type="text" v-model="params.lowDensityThresh" @input="params.lowDensityThresh = params.lowDensityThresh.replace(/[^0-9.]/g, '')" @change="saveParams"></div>
+                        <div class="param-item"><label>冲基础位次差</label><input type="text" v-model="params.baseRush" @input="params.baseRush = params.baseRush.replace(/[^0-9-]/g, '')" @change="saveParams"></div>
+                        <div class="param-item"><label>稳下限位次差</label><input type="text" v-model="params.baseSafe" @input="params.baseSafe = params.baseSafe.replace(/[^0-9-]/g, '')" @change="saveParams"></div>
+                        <div class="param-item"><label>高密度扩大倍数</label><input type="text" v-model="params.highExpand" @input="params.highExpand = params.highExpand.replace(/[^0-9.]/g, '')" @change="saveParams"></div>
+                        <div class="param-item"><label>低密度缩小倍数</label><input type="text" v-model="params.lowShrink" @input="params.lowShrink = params.lowShrink.replace(/[^0-9.]/g, '')" @change="saveParams"></div>
+                        <div class="param-item"><label>高密度概率惩罚(%)</label><input type="text" v-model="params.highPenalty" @input="params.highPenalty = params.highPenalty.replace(/[^0-9]/g, '')" @change="saveParams"></div>
+                        <div class="param-item"><label>冲一冲数量上限</label><input type="text" v-model="params.maxRush" @input="params.maxRush = params.maxRush.replace(/[^0-9]/g, '')" @change="saveParams"></div>
+                        <div class="param-item"><label>稳一稳数量上限</label><input type="text" v-model="params.maxStable" @input="params.maxStable = params.maxStable.replace(/[^0-9]/g, '')" @change="saveParams"></div>
+                        <div class="param-item"><label>保一保数量上限</label><input type="text" v-model="params.maxSafe" @input="params.maxSafe = params.maxSafe.replace(/[^0-9]/g, '')" @change="saveParams"></div>
                     </div>
                     <div style="margin-top:16px; display:flex; gap:12px;">
                         <button class="btn-primary btn-secondary" @click="resetParams">恢复默认</button>
@@ -166,7 +166,7 @@
                     <div>录取概率: <span :class="getProbClass(item.probability)">{{ item.probability }}%</span></div>
                 </div>
             </div>
-            <div class="pagination" v-if="filteredColleges.length > 0" style="margin-bottom: 0; padding-bottom: 0;">
+            <div class="pagination" v-if="filteredColleges.length > 0">
                 <button @click="page--" :disabled="page===1">← 上一页</button>
                 <span>第 {{ page }} / {{ totalPages }} 页</span>
                 <button @click="page++" :disabled="page===totalPages">下一页 →</button>
@@ -6352,7 +6352,7 @@ new Vue({
     data: {
         currentDesktop: 'front',
         category: '物理类',
-        rankInput: '15000',
+        rankInput: 15000,
         scoreInput: '',
         rankFromScoreDisplay: null,
         rankToScoreDisplay: null,
@@ -6588,8 +6588,6 @@ new Vue({
             saveStoredData();
         },
         onRankDirect() { this.displayScoreForRank(); this.runRecommendation(); },
-        cleanRankInput(e) { this.rankInput = e.target.value.replace(/[^0-9]/g, ''); this.displayScoreForRank(); this.runRecommendation(); },
-        cleanScoreInput(e) { this.scoreInput = e.target.value.replace(/[^0-9]/g, ''); },
         displayScoreForRank() {
             if (!this.rankInput) { this.rankToScoreDisplay = null; this.scoreInput = ''; return; }
             let table = storedRankTables[this.category]?.['2026'];
@@ -6597,9 +6595,8 @@ new Vue({
             let userRank = parseInt(this.rankInput);
             for (let [score, info] of Object.entries(table)) {
                 let minRank = info.rank_min;
-                let sameCount = info.same_count;
-                let bestRank = minRank - sameCount + 1; // 最好位次（最小数字）
-                if (userRank >= bestRank && userRank <= minRank) {
+                let maxRank = minRank + info.same_count - 1;
+                if (userRank >= minRank && userRank <= maxRank) {
                     this.rankToScoreDisplay = parseInt(score);
                     this.scoreInput = parseInt(score);
                     return;
@@ -6623,7 +6620,7 @@ new Vue({
             let maxRank = minRank + same - 1;
             this.rankFromScoreDisplay = { min: minRank, max: maxRank, sameCount: same };
             this.rankInterval = { min: minRank, max: maxRank, sameCount: same };
-            this.rankInput = String(minRank);
+            this.rankInput = minRank;
             this.runRecommendation();
         },
         runRecommendation() {
@@ -6678,9 +6675,13 @@ new Vue({
                 let trendIcon='→', trendText='稳定', trendRisk='';
                 if (ranks.length>=2) {
                     let first=ranks[0], last=ranks[ranks.length-1];
-                    if (last > first+300) { trendIcon='↗️'; trendText='上升趋势'; trendRisk='位次可能不稳，谨慎填报'; }
-                    else if (first > last+300) { trendIcon='↘️'; trendText='下降趋势'; trendRisk='捡漏机会，需了解原因'; }
-                    else { trendIcon='→'; trendText='几乎不变'; trendRisk='三年稳定，放心填报'; }
+                    if (Math.abs(last - first) <= 300) {
+                        trendIcon='→'; trendText='几乎不变'; trendRisk='三年稳定，放心填报';
+                    } else if (last < first) {
+                        trendIcon='↘️'; trendText='下降趋势'; trendRisk='捡漏机会，需了解原因';
+                    } else {
+                        trendIcon='↗️'; trendText='上升趋势'; trendRisk='位次可能不稳，谨慎填报';
+                    }
                 }
                 let prob = 50;
                 // 根据位次差计算基础概率
@@ -6817,20 +6818,8 @@ new Vue({
         },
         getProbClass(prob) { if (prob>=70) return 'prob-high'; if (prob>=40) return 'prob-mid'; return 'prob-low'; }
     },
-    mounted() {
-        document.addEventListener('keydown', function(e) {
-            var el = e.target;
-            if (el.tagName !== 'INPUT' || el.type !== 'text') return;
-            if (!el.classList.contains('numeric-only') && !el.closest('.param-item')) return;
-            if (e.key.length !== 1) return;
-            if (e.ctrlKey || e.metaKey || e.altKey) return;
-            if (/[0-9]/.test(e.key)) return;
-            if (el.classList.contains('numeric-only') && (e.key === '.' || e.key === '-')) return;
-            e.preventDefault();
-        }, true);
-    },
     watch: {
-        category() { this.initParams(); this.rankInterval = null; this.rankInput = '15000'; this.scoreInput = ''; this.rankFromScoreDisplay = null; this.rankToScoreDisplay = null; this.runRecommendation(); },
+        category() { this.initParams(); this.rankInterval = null; this.rankInput = 15000; this.scoreInput = ''; this.rankFromScoreDisplay = null; this.rankToScoreDisplay = null; this.runRecommendation(); },
         adminYear() { this.showPreview = false; this.previewPage = 1; },
         adminCategory() { this.showPreview = false; this.previewPage = 1; },
         dataType() { this.showPreview = false; this.previewPage = 1; }
