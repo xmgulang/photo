@@ -6468,6 +6468,17 @@ new Vue({
                         await window.electronAPI.saveVolunteerList(cat, JSON.parse(savedVol));
                     }
                 }
+                // 从文件系统加载参数到 localStorage（确保下次能正确加载）
+                for (let cat of ['物理类','历史类']) {
+                    let fsParams = await window.electronAPI.getParams(cat);
+                    if (fsParams) {
+                        localStorage.setItem('gaokao_params_' + cat, JSON.stringify(fsParams));
+                    }
+                    let fsVol = await window.electronAPI.getVolunteerList(cat);
+                    if (fsVol) {
+                        localStorage.setItem('volunteerList_' + cat, JSON.stringify(fsVol));
+                    }
+                }
                 // 从 CSV 文件加载数据
                 for (let yr of ['2026','2025','2024','2023']) {
                     for (let cat of ['物理类','历史类']) {
@@ -6500,26 +6511,67 @@ new Vue({
     methods: {
         initParams() {
             let m = this.category === '物理类' ? 372 : 137;
+            let isPhysics = this.category === '物理类';
             let saved = loadParamsFromStorage(this.category);
             if (saved) {
-                this.params = saved;
-                this.params.medianSameCount = m;
+                this.params = {
+                    maxRush: saved.maxRush ?? 8,
+                    maxStable: saved.maxStable ?? 7,
+                    maxSafe: saved.maxSafe ?? 6,
+                    medianSameCount: saved.medianSameCount ?? m,
+                    highDensityThresh: saved.highDensityThresh ?? 2.0,
+                    lowDensityThresh: saved.lowDensityThresh ?? 0.5,
+                    baseRush: saved.baseRush ?? (isPhysics ? 5000 : 170),
+                    baseSafe: saved.baseSafe ?? (isPhysics ? -3000 : -130),
+                    highExpand: saved.highExpand ?? 1.5,
+                    lowShrink: saved.lowShrink ?? 0.7,
+                    highPenalty: saved.highPenalty ?? 5
+                };
                 this.defaultParams = JSON.parse(JSON.stringify(this.params));
                 saveParamsToStorage(this.params, this.category);
             } else {
-                this.params = { maxRush: 8, maxStable: 7, maxSafe: 6, medianSameCount: m, highDensityThresh: 2.0, lowDensityThresh: 0.5, baseRush: 5000, baseSafe: -3000, highExpand: 1.5, lowShrink: 0.7, highPenalty: 5 };
+                this.params = {
+                    maxRush: 8, maxStable: 7, maxSafe: 6, medianSameCount: m,
+                    highDensityThresh: 2.0, lowDensityThresh: 0.5,
+                    baseRush: isPhysics ? 5000 : 170,
+                    baseSafe: isPhysics ? -3000 : -130,
+                    highExpand: 1.5, lowShrink: 0.7, highPenalty: 5
+                };
                 this.defaultParams = JSON.parse(JSON.stringify(this.params));
             }
         },
-        saveParams() { saveParamsToStorage(this.params, this.category); this.defaultParams = JSON.parse(JSON.stringify(this.params)); },
+        saveParams() {
+            saveParamsToStorage(this.params, this.category);
+            this.defaultParams = JSON.parse(JSON.stringify(this.params));
+            // 同时保存到文件系统
+            if (window.electronAPI) {
+                window.electronAPI.saveParams(this.category, this.params);
+            }
+        },
         resetParams() {
             let m = this.category === '物理类' ? 372 : 137;
-            this.params = { maxRush: 8, maxStable: 7, maxSafe: 6, medianSameCount: m, highDensityThresh: 2.0, lowDensityThresh: 0.5, baseRush: 5000, baseSafe: -3000, highExpand: 1.5, lowShrink: 0.7, highPenalty: 5 };
+            let isPhysics = this.category === '物理类';
+            this.params = {
+                maxRush: 8, maxStable: 7, maxSafe: 6, medianSameCount: m,
+                highDensityThresh: 2.0, lowDensityThresh: 0.5,
+                baseRush: isPhysics ? 5000 : 170,
+                baseSafe: isPhysics ? -3000 : -130,
+                highExpand: 1.5, lowShrink: 0.7, highPenalty: 5
+            };
             this.defaultParams = JSON.parse(JSON.stringify(this.params));
             saveParamsToStorage(this.params, this.category);
+            if (window.electronAPI) {
+                window.electronAPI.saveParams(this.category, this.params);
+            }
             this.applyParams();
         },
-        applyParams() { saveParamsToStorage(this.params, this.category); if (this.rankInterval || this.rankInput) this.runRecommendation(); },
+        applyParams() {
+            saveParamsToStorage(this.params, this.category);
+            if (window.electronAPI) {
+                window.electronAPI.saveParams(this.category, this.params);
+            }
+            if (this.rankInterval || this.rankInput) this.runRecommendation();
+        },
         togglePreview() { this.showPreview = !this.showPreview; },
         openPreviewModal() { this.showPreviewModal = true; },
         updatePreviewData(rowIdx, colName, newVal) {
@@ -6825,6 +6877,5 @@ new Vue({
         dataType() { this.showPreview = false; this.previewPage = 1; }
     }
 });
-</script>
-</body>
+</script></body>
 </html>
