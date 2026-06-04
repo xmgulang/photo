@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-<title>AI大模型图片智能分析 · 百炼版</title>
+<title>AI大模型图片智能分析 · 多模型版</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 :root { --bg: #fff; --text: #1c1c1e; --text-secondary: #6c6c70; --placeholder-bg: #F2F2F7; --card-bg: #F8F8FC; --intro-color: #8e8e93; --photo-height: 46vh; --accent: #E91E63; --accent-light: #FF80AB; --border: #E5E5EA; --font-size: 15px; --shadow-sm: 0 2px 6px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.05); }
@@ -83,12 +84,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Ping
 <div class="api-modal" id="apiModal">
 <div class="api-content">
 <div class="api-title">✨ 分析引擎设置</div>
-<div class="api-hint">本地引擎已足够丰富；云端需有效 API Key，支持阿里云百炼 qwen3.6-plus（多模态）。<br><strong style="color:#E91E63;">⚠️ 重要：请安装并开启 CORS 插件（如 Allow CORS），否则云端调用会因跨域而失败。</strong></div>
+<div class="api-hint">本地引擎已足够丰富；云端需有效 API Key，支持阿里云百炼、MiniMax M3。<br><strong style="color:#E91E63;">⚠️ 重要：请安装并开启 CORS 插件（如 Allow CORS），否则云端调用会因跨域而失败。</strong></div>
 <select class="api-select" id="modelSelect">
 <option value="local">🧠 智慧本地引擎（生动多变）</option>
 <option value="bailian">🌟 阿里云百炼 Qwen3.6-Plus（多模态）</option>
+<option value="minimax">🚀 MiniMax M3（多模态）</option>
 </select>
-<input type="password" class="api-input" id="apiKeyInput" placeholder="输入百炼 API Key（格式：sk-...）">
+<input type="password" class="api-input" id="apiKeyInput" placeholder="输入 API Key（云端模式必填）">
 <div class="api-hint" id="modelHint">本地模式：无需网络，生成约200字生动点评。云端模式：需要有效 Key 并开启 CORS 插件。</div>
 <div class="api-buttons">
 <button class="api-btn api-btn-secondary" id="apiSkip">取消</button>
@@ -173,12 +175,30 @@ let currentImage = null;
 let fontSizeIndex = 1;
 const fontSizes = ['13px', '15px', '17px'];
 let isDark = false;
-let apiKey = localStorage.getItem('photoai_api_key') || '';
 let currentModel = localStorage.getItem('photoai_model') || 'local';
+// 分别存储不同模型的 API Key
+let bailianApiKey = localStorage.getItem('photoai_api_key_bailian') || '';
+let minimaxApiKey = localStorage.getItem('photoai_api_key_minimax') || '';
+
+function getApiKeyForModel(model) {
+    if (model === 'bailian') return bailianApiKey;
+    if (model === 'minimax') return minimaxApiKey;
+    return '';
+}
+
+function setApiKeyForModel(model, key) {
+    if (model === 'bailian') {
+        bailianApiKey = key;
+        localStorage.setItem('photoai_api_key_bailian', key);
+    } else if (model === 'minimax') {
+        minimaxApiKey = key;
+        localStorage.setItem('photoai_api_key_minimax', key);
+    }
+}
 
 function init() {
     modelSelect.value = currentModel;
-    apiKeyInput.value = apiKey;
+    apiKeyInput.value = getApiKeyForModel(currentModel);
     updateStatus();
     updateModelHint();
 }
@@ -186,19 +206,31 @@ function updateStatus() {
     if (currentModel === 'local') {
         statusBadge.textContent = '🟢 本地·生动引擎';
         statusBadge.className = 'status-badge online';
-    } else if (apiKey) {
-        statusBadge.textContent = '🔮 百炼Qwen3.6-Plus 云端增强';
-        statusBadge.className = 'status-badge online';
     } else {
-        statusBadge.textContent = '⚠️ 未设置 Key';
-        statusBadge.className = 'status-badge';
+        const key = getApiKeyForModel(currentModel);
+        if (key) {
+            let modelName = '';
+            if (currentModel === 'bailian') modelName = '百炼Qwen3.6';
+            else if (currentModel === 'minimax') modelName = 'MiniMax M3';
+            statusBadge.textContent = `🔮 ${modelName} 云端增强`;
+            statusBadge.className = 'status-badge online';
+        } else {
+            statusBadge.textContent = `⚠️ 未设置 ${currentModel === 'bailian' ? '百炼' : 'MiniMax'} Key`;
+            statusBadge.className = 'status-badge';
+        }
     }
 }
 function getModelName(model) {
-    return model === 'bailian' ? '百炼Qwen3.6' : '本地';
+    if (model === 'bailian') return '百炼Qwen3.6';
+    if (model === 'minimax') return 'MiniMax M3';
+    return '本地';
 }
 function updateModelHint() {
-    const hints = { local: '本地模式：无需网络，生成约200字生动点评。', bailian: '百炼 qwen3.6-plus 多模态模型，需要有效的 API Key 并开启 CORS 插件。' };
+    const hints = {
+        local: '本地模式：无需网络，生成约200字生动点评。',
+        bailian: '阿里云百炼 qwen3.6-plus 多模态模型，需要有效的 API Key 并开启 CORS 插件。',
+        minimax: 'MiniMax M3 多模态模型，需要有效的 API Key 并开启 CORS 插件。'
+    };
     modelHint.textContent = hints[modelSelect.value] || hints.local;
 }
 photoArea.addEventListener('click', () => fileInput.click());
@@ -215,23 +247,39 @@ btnTheme.addEventListener('click', () => {
     btnTheme.textContent = isDark ? '☀️' : '🌙';
 });
 btnSettings.addEventListener('click', () => {
+    apiKeyInput.value = getApiKeyForModel(currentModel);
     apiModal.classList.add('active');
     apiStatus.style.display = 'none';
 });
 apiSkip.addEventListener('click', () => apiModal.classList.remove('active'));
 apiSave.addEventListener('click', saveSettings);
-modelSelect.addEventListener('change', updateModelHint);
+modelSelect.addEventListener('change', onModelSelectChange);
 btnTestKey.addEventListener('click', testApiConnection);
 
-function saveSettings() {
-    currentModel = modelSelect.value;
-    apiKey = apiKeyInput.value.trim();
+function onModelSelectChange() {
+    const newModel = modelSelect.value;
+    const currentKey = apiKeyInput.value.trim();
+    if (currentKey) {
+        setApiKeyForModel(currentModel, currentKey);
+    }
+    currentModel = newModel;
     localStorage.setItem('photoai_model', currentModel);
-    localStorage.setItem('photoai_api_key', apiKey);
-    if (currentModel !== 'local' && !apiKey) {
+    apiKeyInput.value = getApiKeyForModel(currentModel);
+    updateStatus();
+    updateModelHint();
+}
+
+function saveSettings() {
+    const newModel = modelSelect.value;
+    const newKey = apiKeyInput.value.trim();
+    if (newModel !== 'local' && !newKey) {
         showStatus('请填写 API Key 以启用云端点评', 'err');
-        updateStatus();
         return;
+    }
+    currentModel = newModel;
+    localStorage.setItem('photoai_model', currentModel);
+    if (newModel !== 'local') {
+        setApiKeyForModel(newModel, newKey);
     }
     showStatus('设置已保存 ✓', 'ok');
     updateStatus();
@@ -243,7 +291,6 @@ function showStatus(msg, type) {
     apiStatus.style.display = 'block';
 }
 
-// 动态生成一个符合要求的测试图片（100x100 红色 PNG）
 async function generateTestImageBase64() {
     return new Promise((resolve) => {
         const canvas = document.createElement('canvas');
@@ -279,26 +326,43 @@ async function testApiConnection() {
     }
     showStatus('正在测试连接... 请确保 CORS 插件已开启', 'ok');
     try {
-        // 动态生成测试图片（确保格式正确）
-        const testImageBase64 = await generateTestImageBase64();
-        const payload = {
-            model: 'qwen3.6-plus',
-            messages: [{
-                role: 'user',
-                content: [
-                    { type: 'image_url', image_url: { url: `data:image/png;base64,${testImageBase64}` } },
-                    { type: 'text', text: '简单描述这张图片' }
-                ]
-            }]
-        };
-        const res = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {
+        let url = '';
+        let payload = null;
+        if (model === 'bailian') {
+            const testImageBase64 = await generateTestImageBase64();
+            url = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
+            payload = {
+                model: 'qwen3.6-plus',
+                messages: [{
+                    role: 'user',
+                    content: [
+                        { type: 'image_url', image_url: { url: `data:image/png;base64,${testImageBase64}` } },
+                        { type: 'text', text: '简单描述这张图片' }
+                    ]
+                }]
+            };
+        } else if (model === 'minimax') {
+            const testImageBase64 = await generateTestImageBase64();
+            url = 'https://api.minimax.chat/v1/chat/completions';
+            payload = {
+                model: 'MiniMax-M3',
+                messages: [{
+                    role: 'user',
+                    content: [
+                        { type: 'image_url', image_url: `data:image/png;base64,${testImageBase64}` }, // 修正格式
+                        { type: 'text', text: '简单描述这张图片' }
+                    ]
+                }]
+            };
+        }
+        const res = await fetch(url, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
         if (res.ok) {
             showStatus('✅ API Key 有效，连接正常（CORS 已解决）', 'ok');
-            if (model === currentModel && key === apiKey) {
+            if (model === currentModel && key === getApiKeyForModel(model)) {
                 updateStatus();
             } else {
                 showStatus('✅ 连接成功！请点击“保存”以启用云端模式', 'ok');
@@ -309,9 +373,6 @@ async function testApiConnection() {
             if (err.error?.message) msg += `: ${err.error.message}`;
             if (res.status === 0 || err.code === 'NetworkError') msg += ' 可能是 CORS 未解决或网络问题，请确认 CORS 插件已开启。';
             showStatus(msg, 'err');
-            if (currentModel !== 'local' && !apiKey) {
-                statusBadge.className = 'status-badge';
-            }
         }
     } catch (e) {
         showStatus(`❌ 网络错误: ${e.message}。请确认 CORS 插件已开启且 API Key 正确。`, 'err');
@@ -346,24 +407,25 @@ async function startAnalysis() {
             sourceTagSpan.className = 'source-tag local';
             analysisMetaSpan.textContent = `分析时间：${new Date().toLocaleString()} · 本地算法`;
         } else {
-            if (!apiKey) {
+            const apiKeyForCurrent = getApiKeyForModel(currentModel);
+            if (!apiKeyForCurrent) {
                 const unifiedText = generateRichLocalText(localMetrics);
                 renderUnifiedText(unifiedText);
-                sourceTagSpan.textContent = '本地引擎 (未设置Key)';
+                sourceTagSpan.textContent = `本地引擎 (未设置${getModelName(currentModel)} Key)`;
                 sourceTagSpan.className = 'source-tag local';
                 analysisMetaSpan.textContent = `分析时间：${new Date().toLocaleString()} · 本地回退模式`;
                 analysisResultDiv.classList.add('active');
                 loadingDiv.classList.remove('active');
                 return;
             }
-            loadingText.textContent = '🌟 调用百炼 qwen3.6-plus (30秒超时)... 请确保 CORS 插件已开启';
+            loadingText.textContent = `🌟 调用 ${getModelName(currentModel)} (30秒超时)... 请确保 CORS 插件已开启`;
             const cloudData = await cloudAnalysisWithTimeout(localMetrics);
             let unifiedText = '';
             if (cloudData && cloudData.valid && cloudData.review && cloudData.review.length > 100) {
                 unifiedText = cloudData.review;
-                sourceTagSpan.textContent = '云端美学 · 百炼Qwen3.6';
+                sourceTagSpan.textContent = `云端美学 · ${getModelName(currentModel)}`;
                 sourceTagSpan.className = 'source-tag fusion';
-                analysisMetaSpan.textContent = `分析时间：${new Date().toLocaleString()} · 百炼 qwen3.6-plus`;
+                analysisMetaSpan.textContent = `分析时间：${new Date().toLocaleString()} · ${getModelName(currentModel)}`;
             } else {
                 unifiedText = generateRichLocalText(localMetrics);
                 let failReason = cloudData?.errorMsg ? ` (${cloudData.errorMsg})` : ' (云端未响应)';
@@ -503,31 +565,56 @@ function generateRichLocalText(local) {
     return full;
 }
 async function cloudAnalysisDetailed() {
-    if (!apiKey) return null;
+    const apiKeyForCurrent = getApiKeyForModel(currentModel);
+    if (!apiKeyForCurrent) return null;
     const prompt = `你是一位世界顶级的摄影评论家，请对这张照片进行深度、全面、富有文学性的赏析。要求：分析色彩运用、光线质感、构图设计、情感氛围、技术细节，并给出具体的改进建议或创作方向。全文300字左右，语言优美、生动形象，避免枯燥的列表。直接返回一个JSON对象，格式如下：{"review": "完整的点评文本（300字左右）"}。不要有任何额外解释。`;
     try {
         const imageBase64 = currentImage.split(',')[1];
-        const payload = {
-            model: 'qwen3.6-plus',
-            messages: [{
-                role: 'user',
-                content: [
-                    { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imageBase64}` } },
-                    { type: 'text', text: prompt }
-                ]
-            }]
-        };
-        const res = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {
+        let url = '';
+        let payload = null;
+        if (currentModel === 'bailian') {
+            url = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
+            payload = {
+                model: 'qwen3.6-plus',
+                messages: [{
+                    role: 'user',
+                    content: [
+                        { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imageBase64}` } },
+                        { type: 'text', text: prompt }
+                    ]
+                }]
+            };
+        } else if (currentModel === 'minimax') {
+            url = 'https://api.minimax.chat/v1/chat/completions';
+            payload = {
+                model: 'MiniMax-M3',
+                messages: [{
+                    role: 'user',
+                    content: [
+                        { type: 'image_url', image_url: `data:image/jpeg;base64,${imageBase64}` }, // 修正格式
+                        { type: 'text', text: prompt }
+                    ]
+                }]
+            };
+        } else {
+            return null;
+        }
+        const res = await fetch(url, {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+            headers: { 'Authorization': `Bearer ${apiKeyForCurrent}`, 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
         if (!res.ok) {
             const errData = await res.json();
-            throw new Error(`百炼请求失败 (${res.status}): ${errData?.error?.message || '未知错误'}`);
+            throw new Error(`${getModelName(currentModel)} 请求失败 (${res.status}): ${errData?.error?.message || '未知错误'}`);
         }
         const data = await res.json();
-        let resultText = data.choices?.[0]?.message?.content || '';
+        let resultText = '';
+        if (currentModel === 'bailian') {
+            resultText = data.choices?.[0]?.message?.content || '';
+        } else if (currentModel === 'minimax') {
+            resultText = data.choices?.[0]?.message?.content || '';
+        }
         if (resultText) {
             let clean = resultText.replace(/```json/g, '').replace(/```/g, '').trim();
             let match = clean.match(/\{[\s\S]*\}/);
