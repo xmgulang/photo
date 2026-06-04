@@ -349,7 +349,7 @@ async function testApiConnection() {
                 messages: [{
                     role: 'user',
                     content: [
-                        { type: 'image_url', image_url: `data:image/png;base64,${testImageBase64}` }, // 修正格式
+                        { type: 'image_url', image_url: { url: `data:image/png;base64,${testImageBase64}` } },
                         { type: 'text', text: '简单描述这张图片' }
                     ]
                 }]
@@ -591,7 +591,7 @@ async function cloudAnalysisDetailed() {
                 messages: [{
                     role: 'user',
                     content: [
-                        { type: 'image_url', image_url: `data:image/jpeg;base64,${imageBase64}` }, // 修正格式
+                        { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imageBase64}` } },
                         { type: 'text', text: prompt }
                     ]
                 }]
