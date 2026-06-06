@@ -81,7 +81,7 @@
         <div class="nav-header">
             <div class="logo">🎓 2026福建高考大数据雷达扫描 <span style="font-size:0.7em;">v.5.0.6</span></div>
             <div class="nav-buttons">
-                <button class="nav-btn" :class="{active: currentDesktop === 'front'}" @click="currentDesktop='front'">志愿推荐系统</button>
+                <button class="nav-btn" :class="{active: currentDesktop === 'front'}" @click="currentDesktop='front'">数据分析系统</button>
                 <button class="nav-btn" :class="{active: currentDesktop === 'admin'}" @click="currentDesktop='admin'">数据管理中心</button>
             </div>
         </div>
@@ -99,7 +99,7 @@
                         <input type="text" v-model="scoreInput" placeholder="请输入分数" @input="scoreInput = scoreInput.replace(/[^0-9]/g, '')" @keyup.enter="convertScoreToRank" @blur="convertScoreToRank">
                     </div>
                     <div class="form-group"><label>参考年份</label><div style="display: flex; gap: 16px;"><label><input type="checkbox" v-model="refYears" value="2025"> 2025</label><label><input type="checkbox" v-model="refYears" value="2024"> 2024</label><label><input type="checkbox" v-model="refYears" value="2023"> 2023</label></div></div>
-                    <div class="form-group"><button class="btn-primary" @click="runRecommendation">🔍 开始推荐</button></div>
+                    <div class="form-group"><button class="btn-primary" @click="runRecommendation">🔍 开始分析</button></div>
                 </div>
             </div>
 
@@ -138,23 +138,23 @@
                     </div>
                     <div style="margin-top:16px; display:flex; gap:12px;">
                         <button class="btn-primary btn-secondary" @click="resetParams">恢复默认</button>
-                        <button class="btn-primary" @click="applyParams">应用参数并推荐</button>
+                        <button class="btn-primary" @click="applyParams">应用参数并分析</button>
                     </div>
                 </div>
             </div>
 
-            <!-- 推荐结果 -->
+            <!-- 分析结果 -->
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap:12px;">
-                <h3>📊 推荐结果 <span style="font-size:14px;">共 {{ filteredColleges.length }} 所</span>
+                <h3>📊 分析结果 <span style="font-size:14px;">共 {{ filteredColleges.length }} 所</span>
                     <span style="font-size:13px; margin-left:12px;" class="filter-chip" :class="{active: filterType==='all'}" @click="filterType='all'">全部</span>
                     <span style="font-size:13px; margin-left:6px;" class="filter-chip" :class="{active: filterType==='冲'}" @click="filterType='冲'">🔥 冲一冲</span>
                     <span style="font-size:13px; margin-left:6px;" class="filter-chip" :class="{active: filterType==='稳'}" @click="filterType='稳'">✅ 稳一稳</span>
                     <span style="font-size:13px; margin-left:6px;" class="filter-chip" :class="{active: filterType==='保'}" @click="filterType='保'">🛡️ 保一保</span>
-                    <span style="font-size:13px; margin-left:560px; padding:6px 14px; border-radius:40px; background:#e8d5f5; color:#7053a5; cursor:pointer;" @click="showVolunteerModal=true">📋 志愿表（{{ volunteerList.length }}所）</span>
+                    <span style="font-size:13px; margin-left:560px; padding:6px 14px; border-radius:40px; background:#e8d5f5; color:#7053a5; cursor:pointer;" @click="showVolunteerModal=true">📋 志愿分析表（{{ volunteerList.length }}所）</span>
                 </h3>
             </div>
             <div v-if="filteredColleges.length === 0" style="text-align:center; padding:40px; color:#5b6e8c;">
-                暂无推荐结果。请确保已导入录取数据（后台→录取数据CSV）或使用内置示例。
+                暂无分析结果。请确保已导入录取数据（后台→录取数据CSV）或使用内置示例。
             </div>
             <div class="cards-grid">
                 <div v-for="item in paginatedList" :key="item.id" class="college-card" @click="toggleDetail(item)">
@@ -163,7 +163,7 @@
                         <div class="badge" :class="item.badgeClass">{{ item.matchLabel }} {{ item.trendIcon }}</div>
                     </div>
                     <div>平均位次: {{ item.avgRank }} &nbsp; 位次差: {{ item.rankDiff }}</div>
-                    <div>录取概率: <span :class="getProbClass(item.probability)">{{ item.probability }}%</span></div>
+                    <div>参考概率: <span :class="getProbClass(item.probability)">{{ item.probability }}%</span></div>
                 </div>
             </div>
             <div class="pagination" v-if="filteredColleges.length > 0">
@@ -173,11 +173,11 @@
             </div>
         </div>
 
-        <!-- 志愿表弹窗 -->
+        <!-- 志愿分析表弹窗 -->
         <div v-if="showVolunteerModal" style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1000; padding-top:60px;" @click.self="showVolunteerModal=false">
             <div style="background:#fff; border-radius:20px; width:90%; max-width:800px; max-height:460px; display:flex; flex-direction:column; padding:20px; margin-left:230px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                    <h4>📋 志愿表（{{ volunteerList.length }}所）</h4>
+                    <h4>📋 志愿分析表（{{ volunteerList.length }}所）</h4>
                     <button @click="showVolunteerModal=false" style="padding:6px 16px; border-radius:20px; border:none; background:#e0d0ed; cursor:pointer;">✕ 关闭</button>
                 </div>
                 <div style="flex:1; overflow-y:auto;">
@@ -185,12 +185,12 @@
                         <thead><tr><th>序号</th><th>院校</th><th>专业</th><th>匹配度</th><th>概率</th><th>操作</th></tr></thead>
                         <tbody>
                             <tr v-for="(v,i) in volunteerList" :key="i"><td>{{ i+1 }}</td><td>{{ v.college }}</td><td>{{ v.major }}</td><td>{{ v.matchLabel }}</td><td>{{ v.probability }}%</td><td><button @click="removeVolunteer(i)" style="padding:4px 10px; border-radius:12px; border:none; background:#ffe4e2; color:#b91c1c; cursor:pointer;">删除</button></td></tr>
-                            <tr v-if="volunteerList.length===0"><td colspan="6" style="text-align:center; padding:40px; color:#5b6e8c;">暂无院校，点击卡片【加入志愿表】</td></tr>
+                            <tr v-if="volunteerList.length===0"><td colspan="6" style="text-align:center; padding:40px; color:#5b6e8c;">暂无院校，点击卡片【加入参考清单】</td></tr>
                         </tbody>
                     </table>
                 </div>
                 <div style="display:flex; justify-content:center; gap:12px; margin-top:16px; padding-top:16px; border-top:1px solid #e0d0ed;">
-                    <button class="btn-primary btn-secondary" @click="exportVolunteer">📥 导出志愿表</button>
+                    <button class="btn-primary btn-secondary" @click="exportVolunteer">📥 导出志愿分析表</button>
                     <button @click="clearVolunteer" style="padding:8px 16px; border-radius:20px; border:none; background:#ffe4e2; color:#b91c1c; cursor:pointer;">🗑️ 清空</button>
                 </div>
             </div>
@@ -277,7 +277,7 @@
                 <div style="background:#f9fbfe; border-radius:16px; padding:16px; margin-bottom:16px;">
                     <div style="color:#4b5565; margin-bottom:8px;">{{ currentDetailItem.major }}</div>
                     <div>平均位次: {{ currentDetailItem.avgRank }} &nbsp; 位次差: {{ currentDetailItem.rankDiff }}</div>
-                    <div>录取概率: <span :class="getProbClass(currentDetailItem.probability)">{{ currentDetailItem.probability }}%</span></div>
+                    <div>参考概率: <span :class="getProbClass(currentDetailItem.probability)">{{ currentDetailItem.probability }}%</span></div>
                 </div>
                 <div class="year-table">
                     <div v-for="year in ['2025','2024','2023']" :key="year" class="year-item" v-if="currentDetailItem.yearData[year]">
@@ -288,7 +288,7 @@
                     <div>趋势: {{ currentDetailItem.trendText }}</div>
                     <div v-if="currentDetailItem.trendRisk" style="color:#d97706; margin-top:4px;">{{ currentDetailItem.trendRisk }}</div>
                 </div>
-                <button class="btn-primary" style="margin-top:16px; width:100%; padding:12px; border-radius:16px;" @click="addToVolunteer(currentDetailItem); showDetailModal=false;">+ 加入志愿表</button>
+                <button class="btn-primary" style="margin-top:16px; width:100%; padding:12px; border-radius:16px;" @click="addToVolunteer(currentDetailItem); showDetailModal=false;">+ 加入参考清单</button>
             </div>
         </div>
     </div>
@@ -6458,7 +6458,7 @@ new Vue({
                             await window.electronAPI.saveEnrollment(cat, yr, enData);
                         }
                     }
-                    // 保存参数和志愿表
+                    // 保存参数和志愿分析表
                     let savedParams = localStorage.getItem('gaokao_params_' + cat);
                     if (savedParams) {
                         await window.electronAPI.saveParams(cat, JSON.parse(savedParams));
@@ -6866,7 +6866,7 @@ new Vue({
         loadVolunteer() { let s = localStorage.getItem('volunteerList_' + this.category); if (s) this.volunteerList = JSON.parse(s); },
         exportVolunteer() {
             let str = "序号,院校,专业,匹配度,概率%\n" + this.volunteerList.map((v,i)=>`${i+1},${v.college},${v.major},${v.matchLabel},${v.probability}`).join("\n");
-            const blob = new Blob([str]); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download='志愿表.csv'; a.click();
+            const blob = new Blob([str]); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download='志愿分析表.csv'; a.click();
         },
         getProbClass(prob) { if (prob>=70) return 'prob-high'; if (prob>=40) return 'prob-mid'; return 'prob-low'; }
     },
