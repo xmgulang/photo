@@ -22,6 +22,8 @@
         .radio-group { display: flex; gap: 20px; background: #f8fafc; justify-content: center; align-items: center; }
         .btn-primary { background: #1e3c72; color: white; border: none; padding: 12px 28px; border-radius: 32px; font-weight: 600; cursor: pointer; }
         .btn-secondary { background: #5b6e8c; }
+        .btn-warn { background: #d97706; }
+        .btn-danger { background: #b91c1c; }
         .filter-bar { margin: 24px 0 20px; display: flex; gap: 12px; flex-wrap: wrap; }
         .filter-chip { padding: 6px 18px; border-radius: 40px; background: #f1f5f9; cursor: pointer; font-size: 0.85rem; }
         .filter-chip.active { background: #1e3c72; color: white; }
@@ -216,7 +218,7 @@
                         <div class="data-type-tab" :class="{active: dataType==='enrollment'}" @click="dataType='enrollment'">👥 招生人数CSV</div>
                     </div>
                     <div class="file-drop" @click="triggerFileUpload" style="text-align:center; max-width:500px; margin:16px auto;"><span style="font-size:1.2rem;">📂</span><br>点击导入 CSV<br><input type="file" ref="fileInput" style="display:none" accept=".csv" @change="handleFileUpload"></div>
-                    <div class="preview-toggle"><button class="btn-primary btn-secondary" @click="openPreviewModal">👁️ 预览数据</button><button class="clear-data-btn" @click="clearCurrentData">🗑️ 清空所有数据</button><button class="btn-secondary" @click="resetLocalStorage" style="margin-left:8px; padding:6px 14px; border-radius:20px; border:none; background:#ffe0e0; color:#a04040; cursor:pointer;">🔄 重置缓存</button></div>
+                    <div class="preview-toggle"><button class="btn-primary btn-secondary" @click="openPreviewModal">👁️ 预览数据</button><button class="btn-primary btn-danger" @click="clearCurrentData">🗑️ 清空所有数据</button><button class="btn-primary btn-warn" @click="resetLocalStorage">🔄 重置缓存</button></div>
                     <hr>
                     <h5>📊 数据存储状态</h5>
                     <table class="status-table">
@@ -6570,12 +6572,11 @@ new Vue({
         },
         resetParams() {
             let m = this.category === '物理类' ? 372 : 137;
-            let isPhysics = this.category === '物理类';
             this.params = {
                 maxRush: 8, maxStable: 7, maxSafe: 6, medianSameCount: m,
                 highDensityThresh: 2.0, lowDensityThresh: 0.5,
-                baseRush: isPhysics ? 5000 : 170,
-                baseSafe: isPhysics ? -3000 : -130,
+                baseRush: 5000,
+                baseSafe: -3000,
                 highExpand: 1.5, lowShrink: 0.7, highPenalty: 5
             };
             this.defaultParams = JSON.parse(JSON.stringify(this.params));
