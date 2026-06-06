@@ -93,10 +93,10 @@
                 <div class="form-grid">
                     <div class="form-group"><label>科类</label><div class="radio-group"><label><input type="radio" value="物理类" v-model="category"> 物理类</label><label><input type="radio" value="历史类" v-model="category"> 历史类</label></div></div>
                     <div class="form-group"><label>位次（2026年）</label>
-                        <input type="text" v-model="rankInput" placeholder="直接输入位次" @input="rankInput = rankInput.replace(/[^0-9]/g, ''); onRankDirect()">
+                        <input type="text" v-model="rankInput" placeholder="直接输入位次" @input="rankInput = rankInput.replace(/[^0-9]/g, ''); onRankDirect()" @change="saveInputs">
                     </div>
                     <div class="form-group"><label>分数（2026年）</label>
-                        <input type="text" v-model="scoreInput" placeholder="请输入分数" @input="scoreInput = scoreInput.replace(/[^0-9]/g, '')" @keyup.enter="convertScoreToRank" @blur="convertScoreToRank">
+                        <input type="text" v-model="scoreInput" placeholder="请输入分数" @input="scoreInput = scoreInput.replace(/[^0-9]/g, '')" @keyup.enter="convertScoreToRank" @blur="convertScoreToRank" @change="saveInputs">
                     </div>
                     <div class="form-group"><label>参考年份</label><div style="display: flex; gap: 16px;"><label><input type="checkbox" v-model="refYears" value="2025"> 2025</label><label><input type="checkbox" v-model="refYears" value="2024"> 2024</label><label><input type="checkbox" v-model="refYears" value="2023"> 2023</label></div></div>
                     <div class="form-group"><button class="btn-primary" @click="runRecommendation">🔍 开始分析</button></div>
@@ -6439,6 +6439,7 @@ new Vue({
     mounted() {
         this.loadVolunteer();
         this.initParams();
+        this.initInputs();
         this.updateDataStatus();
         this.runRecommendation();
         // 桌面版：同步 localStorage 数据到 CSV 文件
@@ -6552,6 +6553,16 @@ new Vue({
             if (window.electronAPI) {
                 window.electronAPI.saveParams(this.category, this.params);
             }
+        },
+        saveInputs() {
+            localStorage.setItem('rankInput_' + this.category, String(this.rankInput));
+            localStorage.setItem('scoreInput_' + this.category, String(this.scoreInput));
+        },
+        initInputs() {
+            const r = localStorage.getItem('rankInput_' + this.category);
+            const s = localStorage.getItem('scoreInput_' + this.category);
+            if (r !== null && r !== '') this.rankInput = parseInt(r) || 15000;
+            if (s !== null && s !== '') this.scoreInput = s;
         },
         resetParams() {
             let m = this.category === '物理类' ? 372 : 137;
@@ -6876,7 +6887,7 @@ new Vue({
         getProbClass(prob) { if (prob>=70) return 'prob-high'; if (prob>=40) return 'prob-mid'; return 'prob-low'; }
     },
     watch: {
-        category() { this.initParams(); this.rankInterval = null; this.rankInput = 15000; this.scoreInput = ''; this.rankFromScoreDisplay = null; this.rankToScoreDisplay = null; this.runRecommendation(); },
+        category() { this.initParams(); this.initInputs(); this.rankInterval = null; this.rankFromScoreDisplay = null; this.rankToScoreDisplay = null; this.runRecommendation(); },
         adminYear() { this.showPreview = false; this.previewPage = 1; },
         adminCategory() { this.showPreview = false; this.previewPage = 1; },
         dataType() { this.showPreview = false; this.previewPage = 1; }
