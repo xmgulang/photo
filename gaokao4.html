@@ -250,10 +250,13 @@
             <div style="flex:1; overflow-y:auto;">
                 <div style="margin-bottom:12px; color:#666;">共 {{ currentPreviewData.length }} 条</div>
                 <table class="preview-table">
-                    <thead><tr><th v-for="col in previewColumns" style="position:sticky; top:0; background:#f8fafc;">{{ col }}</th></tr></thead>
+                    <thead><tr><th v-for="col in previewColumns" :key="col.key" style="position:sticky; top:0; background:#f8fafc;">{{ col.label }}</th></tr></thead>
                     <tbody>
                         <tr v-for="(row,idx) in paginatedPreviewData" :key="idx" style="background:#fff;">
-                            <td v-for="col in previewColumns">{{ row[col] }}</td>
+                            <td v-for="col in previewColumns" :key="col.key">
+                                <span>{{ row[col.key] }}</span>
+                                <span v-if="dataType==='admission' && col.key==='enrollment' && row._multiMajor" style="color:#94a3b8; font-size:0.75em; margin-left:2px;">(总)</span>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -6396,15 +6399,36 @@ new Vue({
         previewTotalPages() { return Math.ceil(this.currentPreviewData.length / this.previewPageSize) || 1; },
         paginatedPreviewData() { let s = (this.previewPage - 1) * this.previewPageSize; return this.currentPreviewData.slice(s, s + this.previewPageSize); },
         previewColumns() {
-            if (this.dataType === 'admission') return ['college', 'major', 'min_rank', 'min_score', 'enrollment'];
-            else if (this.dataType === 'enrollment') return ['college', 'enrollment'];
-            else return ['分数', '人数', '位次'];
+            if (this.dataType === 'admission') return [
+                { key: 'college', label: '院校' },
+                { key: 'major', label: '专业' },
+                { key: 'min_rank', label: '最低位次' },
+                { key: 'min_score', label: '最低分' },
+                { key: 'enrollment', label: '招生人数' }
+            ];
+            else if (this.dataType === 'enrollment') return [
+                { key: 'college', label: '院校' },
+                { key: 'enrollment', label: '招生人数' }
+            ];
+            else return [
+                { key: '分数', label: '分数' },
+                { key: '人数', label: '人数' },
+                { key: '位次', label: '位次' }
+            ];
         },
         currentPreviewData() {
             let cat = this.adminCategory, yr = this.adminYear;
             if (this.dataType === 'admission') {
                 let records = storedAdmission[cat]?.[yr] || [];
-                return records.map(r => ({ ...r }));
+                // 用 enrollment CSV 覆盖 admission 里的招生人数（精确匹配整名，避免主项串到子项）
+                let enData = storedEnrollment[cat]?.[yr] || [];
+                // 统计每所院校在 admission 里出现次数：≥2 说明被拆成多个专业组，加"总"才有意义
+                let counts = {};
+                for (let r of records) counts[r.college] = (counts[r.college] || 0) + 1;
+                return records.map(r => {
+                    let found = enData.find(e => e.college === r.college);
+                    return { ...r, enrollment: found ? found.enrollment : r.enrollment, _multiMajor: counts[r.college] >= 2 };
+                });
             } else if (this.dataType === 'enrollment') {
                 let records = storedEnrollment[cat]?.[yr] || [];
                 return records.map(r => ({ college: r.college, enrollment: r.enrollment }));
@@ -6565,10 +6589,9 @@ new Vue({
             localStorage.setItem('scoreInput_' + this.category, String(this.scoreInput));
         },
         initInputs() {
-            const r = localStorage.getItem('rankInput_' + this.category);
-            const s = localStorage.getItem('scoreInput_' + this.category);
-            if (r !== null && r !== '') this.rankInput = parseInt(r) || 15000;
-            if (s !== null && s !== '') this.scoreInput = s;
+            // 刷新页面后两个输入框都从空状态开始，显示 placeholder
+            this.rankInput = '';
+            this.scoreInput = '';
         },
         resetParams() {
             let m = this.category === '物理类' ? 372 : 137;
@@ -6719,13 +6742,12 @@ new Vue({
                     combined.get(key).yearData[year] = { rank: rec.min_rank, score: rec.min_score, enroll: rec.enrollment };
                 }
             }
-            // 匹配各年份真实招生人数（院校基础名包含匹配）
+            // 匹配各年份真实招生人数：按完整院校名精确匹配，避免"福州大学"主项串到"福州大学（面向福州）"等子项
             for (let [key, item] of combined.entries()) {
-                let baseCollege = item.college.split('（')[0];
                 for (let y of ['2025', '2024', '2023']) {
                     if (!item.yearData[y]) continue;
                     let enData = storedEnrollment[cat]?.[y] || [];
-                    let found = enData.find(e => e.college.split('（')[0] === baseCollege);
+                    let found = enData.find(e => e.college === item.college);
                     item.yearData[y].enrollment = found ? found.enrollment : null;
                 }
             }
