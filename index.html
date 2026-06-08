@@ -272,16 +272,23 @@ function onModelSelectChange() {
 function saveSettings() {
     const newModel = modelSelect.value;
     const newKey = apiKeyInput.value.trim();
-    if (newModel !== 'local' && !newKey) {
-        showStatus('请填写 API Key 以启用云端点评', 'err');
-        return;
-    }
     currentModel = newModel;
     localStorage.setItem('photoai_model', currentModel);
-    if (newModel !== 'local') {
+    if (newModel === 'local') {
+        // 切回本地模式：清空两个云端的 key
+        bailianApiKey = '';
+        minimaxApiKey = '';
+        localStorage.removeItem('photoai_api_key_bailian');
+        localStorage.removeItem('photoai_api_key_minimax');
+        showStatus('已清空所有云端 API Key ✓', 'ok');
+    } else if (newKey) {
         setApiKeyForModel(newModel, newKey);
+        showStatus('设置已保存 ✓', 'ok');
+    } else {
+        // 云端模式但 key 留空：清空该模型的 key
+        setApiKeyForModel(newModel, '');
+        showStatus('已清空 ' + getModelName(newModel) + ' 的 API Key ✓', 'ok');
     }
-    showStatus('设置已保存 ✓', 'ok');
     updateStatus();
     setTimeout(() => apiModal.classList.remove('active'), 600);
 }
