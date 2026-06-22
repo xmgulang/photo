@@ -105,7 +105,8 @@
             animation: radar-pulse 4s ease-in-out infinite;
         }
         .hero-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 28px; align-items: center; }
-        .hero-title { font-size: 1.9rem; font-weight: 800; margin: 0 0 10px; letter-spacing: -0.5px; animation: float-up 0.8s ease-out both; }
+        .hero-text { min-width: 0; }
+        .hero-title { font-size: 1.9rem; font-weight: 800; margin: 0 0 10px; letter-spacing: -0.5px; animation: float-up 0.8s ease-out both; word-break: break-word; }
         .hero-subtitle { font-size: 0.95rem; opacity: 0.9; margin: 0 0 18px; line-height: 1.5; animation: float-up 0.8s 0.15s ease-out both; }
         .hero-tags { display: flex; gap: 8px; flex-wrap: wrap; animation: float-up 0.8s 0.3s ease-out both; }
         .hero-tag {
@@ -279,6 +280,7 @@
             h2 { font-size: 1.2rem; }
             h3 { font-size: 1.05rem; }
             .desktop { padding: 12px !important; }
+            .card { padding: 14px !important; margin-bottom: 16px !important; }
             .stat-card { padding: 10px !important; }
             .stat-number { font-size: 1.4rem !important; }
             .college-card { padding: 12px !important; }
@@ -291,6 +293,10 @@
             .param-item { display: inline-block; min-width: 180px; vertical-align: top; white-space: normal; margin-right: 10px; }
             /* 后台上传区视频固定宽度缩到容器内 */
             .upload-area video { width: 100% !important; max-width: 100%; height: auto !important; }
+            /* 后台预览/清空/重置三按钮:2 列 grid,紧凑间距 */
+            .preview-toggle { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 12px 0; }
+            .preview-toggle .btn-primary { padding: 8px 10px !important; font-size: 0.85rem !important; white-space: nowrap; }
+            .preview-toggle .btn-primary:nth-child(3) { grid-column: 1 / -1; }
         }
         /* v5.0.8:超窄屏 (<480px) 极端适配 */
         @media (max-width: 480px) {
@@ -298,6 +304,9 @@
             .nav-header { padding: 8px 10px; gap: 8px; }
             .logo { font-size: 0.95rem; }
             .help-btn { width: 44px; height: 44px; font-size: 18px; bottom: 16px; right: 16px; }
+            /* 卡片内边距极致压缩,但仍留 10px 呼吸 */
+            .card { padding: 12px !important; margin-bottom: 12px !important; }
+            .desktop { padding: 8px !important; }
             /* 统计卡片:6 → 2 列,字号/间距缩小 */
             .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
             .stat-card { padding: 8px !important; }
@@ -306,9 +315,15 @@
             /* 雷达图:强制不超过视口宽度 */
             .radar-stage { width: 80vw !important; max-width: 240px; height: auto !important; aspect-ratio: 1 / 1; margin: 0 auto; }
             .radar-container, .hero-grid, .card { overflow: hidden; }
-            h1, .hero-title { font-size: 1.15rem !important; }
+            /* Hero 标题超窄屏更小,避免 1 行装不下 */
+            .hero-title { font-size: 1.05rem !important; letter-spacing: 0; }
+            .hero-subtitle { font-size: 0.85rem; }
+            h1, .hero-title { font-size: 1.05rem !important; }
             h2 { font-size: 1rem; }
             h3 { font-size: 0.95rem; }
+            /* 后台按钮 480 下依旧 2 列,但字号更紧凑 */
+            .preview-toggle { gap: 6px; }
+            .preview-toggle .btn-primary { padding: 6px 8px !important; font-size: 0.8rem !important; }
         }
     </style>
     <script src="https://cdn.staticfile.org/vue/2.6.14/vue.min.js"></script>
@@ -352,7 +367,7 @@
             <!-- ===== Hero 动画介绍 banner ===== -->
             <div class="hero-banner">
                 <div class="hero-grid">
-                    <div>
+                    <div class="hero-text">
                         <h1 class="hero-title">🎓 高考志愿 · 大数据雷达扫描</h1>
                         <p class="hero-subtitle">输入分数位次，3 秒算出冲稳保。基于一分一段表 + 历年录取数据，精准匹配福建考生可填报院校。</p>
                         <div class="hero-tags">
