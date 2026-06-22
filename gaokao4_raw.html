@@ -241,6 +241,29 @@
             .feature-grid { grid-template-columns: repeat(2, 1fr); }
             .hero-title { font-size: 1.5rem; }
         }
+        /* v2:组级竞争密度 / 热门组徽标 */
+        .badge-density { background: #e0f2fe; color: #0369a1; margin-left: 8px; }
+        .badge-hot { background: #ffe4e2; color: #b91c1c; margin-left: 8px; }
+        /* v5.0.8:帮助按钮与 Modal */
+        .help-btn { position: fixed; bottom: 30px; right: 30px; z-index: 1500; width: 56px; height: 56px; border-radius: 50%; background-color: #7c4dff; color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; padding: 0; line-height: 1; border: none; }
+        .help-btn:hover { background-color: #6a3ee8; transform: scale(1.1); box-shadow: 0 6px 16px rgba(0,0,0,0.4); }
+        .help-btn span { display: none; }
+        .help-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15,23,42,0.55); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 20px; backdrop-filter: blur(2px); }
+        .help-modal-box { background: #fff; border-radius: 20px; width: 100%; max-width: 640px; max-height: 80vh; display: flex; flex-direction: column; padding: 28px 32px; box-shadow: 0 20px 60px -10px rgba(0,0,0,0.35); overflow: hidden; }
+        .help-modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0; }
+        .help-modal-head h3 { margin: 0; color: #1e293b; font-size: 1.25rem; }
+        .help-modal-close { background: #f1f5f9; color: #475569; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1rem; line-height: 1; transition: all 0.2s; }
+        .help-modal-close:hover { background: #e2e8f0; color: #1e293b; }
+        .help-modal-body { overflow-y: auto; line-height: 1.75; color: #334155; font-size: 0.95rem; padding-right: 8px; }
+        .help-modal-body h4 { color: #1e293b; margin: 18px 0 10px; font-size: 1.05rem; }
+        .help-modal-body p { margin: 0 0 10px; }
+        .help-modal-body ul { margin: 0 0 12px; padding-left: 22px; }
+        .help-modal-body li { margin-bottom: 6px; }
+        .help-modal-body strong { color: #1e293b; }
+        /* v5.0.8:启动页底部滚动免责声明 */
+        .scrolling-disclaimer { margin-top: 30px; width: 80%; max-width: 600px; overflow: hidden; white-space: nowrap; position: relative; }
+        .scrolling-disclaimer p { display: inline-block; padding-left: 100%; color: rgba(255,255,255,0.45); font-size: 12px; animation: scroll-text 20s linear infinite; will-change: transform; }
+        @keyframes scroll-text { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
     </style>
     <script src="https://cdn.staticfile.org/vue/2.6.14/vue.min.js"></script>
     <script src="https://cdn.staticfile.org/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -253,7 +276,7 @@
             <div style="position:absolute;top:50%;left:50%;width:8px;height:8px;background:#61ef00;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 15px #61ef00;"></div>
         </div>
         <div>
-            <h1 style="font-size:22px;color:#fff;margin-bottom:15px;">2026 福建高考大數據雷達掃描 <span style="font-size:12px;background:#7c4dff;padding:2px 6px;border-radius:4px;">v.5.0.6</span></h1>
+            <h1 style="font-size:22px;color:#fff;margin-bottom:15px;">2026 福建高考大數據雷達掃描 <span style="font-size:12px;background:#7c4dff;padding:2px 6px;border-radius:4px;">v.5.0.8</span></h1>
             <div style="background:rgba(0,0,0,0.5);border:1px solid rgba(162,119,255,0.2);border-radius:8px;padding:15px;text-align:left;font-size:13px;line-height:1.8;">
                 <p style="color:#61ef00;margin:4px 0;">📡 SCAN: 2026 福建高考大數據內核已完全載入...</p>
                 <p style="color:#00e5ff;margin:4px 0;">📊 MATCH: 沖・穩・保 三維立體算法動態掃描中...</p>
@@ -261,13 +284,16 @@
             </div>
         </div>
         <button onclick="document.getElementById('hermes-intro-overlay').style.opacity='0';setTimeout(()=>{document.getElementById('hermes-intro-overlay').remove()},800)" style="background:linear-gradient(135deg, #7c4dff 0%, #ff4081 100%);color:white;border:none;padding:12px 35px;font-size:15px;font-weight:bold;border-radius:25px;cursor:pointer;box-shadow:0 5px 15px rgba(255,64,129,0.4);">⚡ 啟動數據掃描</button>
+        <div class="scrolling-disclaimer">
+            <p>本分析数据仅供参考，不做为推荐依据 · 2026福建高考大数据雷达扫描系统 v5.0.8 · 请结合考生实际情况理性填报</p>
+        </div>
     </div>
 </div>
 <style>@keyframes r-spin{100%{transform:rotate(360deg);}}</style>
 <div id="app">
     <div class="app-container">
         <div class="nav-header">
-            <div class="logo">🎓 2026福建高考大数据雷达扫描 <span style="font-size:0.7em;">v.5.0.6</span></div>
+            <div class="logo">🎓 2026福建高考大数据雷达扫描 <span style="font-size:0.7em;">v.5.0.8</span></div>
             <div class="nav-buttons">
                 <button class="nav-btn" :class="{active: currentDesktop === 'front'}" @click="currentDesktop='front'">数据分析系统</button>
                 <button class="nav-btn" :class="{active: currentDesktop === 'admin'}" @click="currentDesktop='admin'">数据管理中心</button>
@@ -284,7 +310,7 @@
                         <h1 class="hero-title">🎓 高考志愿 · 大数据雷达扫描</h1>
                         <p class="hero-subtitle">输入分数位次，3 秒算出冲稳保。基于一分一段表 + 历年录取数据，精准匹配福建考生可填报院校。</p>
                         <div class="hero-tags">
-                            <span class="hero-tag hot">🔥 v5.0.6</span>
+                            <span class="hero-tag hot">🔥 v5.0.8</span>
                             <span class="hero-tag">📊 一分一段表</span>
                             <span class="hero-tag">⚙️ 参数可调</span>
                             <span class="hero-tag">📋 志愿表导出</span>
@@ -411,6 +437,15 @@
                         <div class="param-item"><label>冲一冲数量上限</label><input type="text" v-model="params.maxRush" @input="params.maxRush = params.maxRush.replace(/[^0-9]/g, '')" @change="saveParams"></div>
                         <div class="param-item"><label>稳一稳数量上限</label><input type="text" v-model="params.maxStable" @input="params.maxStable = params.maxStable.replace(/[^0-9]/g, '')" @change="saveParams"></div>
                         <div class="param-item"><label>保一保数量上限</label><input type="text" v-model="params.maxSafe" @input="params.maxSafe = params.maxSafe.replace(/[^0-9]/g, '')" @change="saveParams"></div>
+                        <div class="param-item"><label>单组招生基线</label><input type="text" v-model="params.groupEnrollBase" @input="params.groupEnrollBase = params.groupEnrollBase.replace(/[^0-9]/g, '')" @change="saveParams" title="用于计算专业组容量的基准值，影响局部竞争密度的计算。"></div>
+                        <div class="param-item"><label>组内热门阈值(倍)</label><input type="text" v-model="params.groupHotRatioThresh" @input="params.groupHotRatioThresh = params.groupHotRatioThresh.replace(/[^0-9.]/g, '')" @change="saveParams" title="当专业组内某专业录取位次/组平均位次超过此倍数时，视为热门专业，增加惩罚。"></div>
+                        <div class="param-item"><label>热门组概率惩罚(%)</label><input type="text" v-model="params.groupHotPenalty" @input="params.groupHotPenalty = params.groupHotPenalty.replace(/[^0-9]/g, '')" @change="saveParams" title="如果专业组被判定为热门，录取概率将直接扣除此百分比。"></div>
+                        <div class="param-item"><label>组级密度阈值(倍)</label><input type="text" v-model="params.intraGroupDensityThresh" @input="params.intraGroupDensityThresh = params.intraGroupDensityThresh.replace(/[^0-9.]/g, '')" @change="saveParams" title="当专业组的局部竞争密度超过此倍数时，开始施加密度惩罚。"></div>
+                        <div class="param-item"><label>组级密度基础惩罚(%)</label><input type="text" v-model="params.intraGroupPenalty" @input="params.intraGroupPenalty = params.intraGroupPenalty.replace(/[^0-9]/g, '')" @change="saveParams" title="超过密度阈值后，每增加1倍密度，概率扣除的百分比。"></div>
+                        <div class="param-item"><label>组级密度惩罚上限(%)</label><input type="text" v-model="params.intraGroupPenaltyMax" @input="params.intraGroupPenaltyMax = params.intraGroupPenaltyMax.replace(/[^0-9]/g, '')" @change="saveParams" title="因局部竞争密度导致的概率惩罚，最高不超过此值。"></div>
+                        <div class="param-item"><label>同校冲最多组数</label><input type="text" v-model="params.perCollegeMaxRush" @input="params.perCollegeMaxRush = params.perCollegeMaxRush.replace(/[^0-9]/g, '')" @change="saveParams" title="在“冲一冲”列表中，同一所院校最多显示的专业组数量，避免扎堆。"></div>
+                        <div class="param-item"><label>同校稳最多组数</label><input type="text" v-model="params.perCollegeMaxStable" @input="params.perCollegeMaxStable = params.perCollegeMaxStable.replace(/[^0-9]/g, '')" @change="saveParams" title="在“稳一稳”列表中，同一所院校最多显示的专业组数量。"></div>
+                        <div class="param-item"><label>同校保最多组数</label><input type="text" v-model="params.perCollegeMaxSafe" @input="params.perCollegeMaxSafe = params.perCollegeMaxSafe.replace(/[^0-9]/g, '')" @change="saveParams" title="在“保一保”列表中，同一所院校最多显示的专业组数量。"></div>
                     </div>
                     <div style="margin-top:16px; display:flex; gap:12px;">
                         <button class="btn-primary btn-secondary" @click="resetParams">恢复默认</button>
@@ -436,7 +471,11 @@
                 <div v-for="item in paginatedList" :key="item.id" class="college-card" @click="toggleDetail(item)">
                     <div style="display:flex; justify-content:space-between;">
                         <div><strong>{{ item.college }}</strong><br><span style="color:#4b5565;">{{ item.major }}</span></div>
-                        <div class="badge" :class="item.badgeClass">{{ item.matchLabel }} {{ item.trendIcon }}</div>
+                        <div style="display: flex; align-items: center; white-space: nowrap;">
+                            <div class="badge" :class="item.badgeClass">{{ item.matchLabel }} {{ item.trendIcon }}</div>
+                            <span class="badge badge-density" v-if="item.groupDensity > params.intraGroupDensityThresh">密度 {{ item.groupDensity }}x</span>
+                            <span class="badge badge-hot" v-if="item.hotRatio > params.groupHotRatioThresh">🔥 热门</span>
+                        </div>
                     </div>
                     <div>平均位次: {{ item.avgRank }} &nbsp; 位次差: {{ item.rankDiff }}</div>
                     <div>参考概率: <span :class="getProbClass(item.probability)">{{ item.probability }}%</span></div>
@@ -568,6 +607,38 @@
                     <div v-if="currentDetailItem.trendRisk" style="color:#d97706; margin-top:4px;">{{ currentDetailItem.trendRisk }}</div>
                 </div>
                 <button class="btn-primary" style="margin-top:16px; width:100%; padding:12px; border-radius:16px;" @click="addToVolunteer(currentDetailItem); showDetailModal=false;">+ 加入参考清单</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- v5.0.8:使用说明 Modal -->
+    <div v-if="showHelpModal" class="help-modal-overlay" @click.self="showHelpModal = false">
+        <div class="help-modal-box" @click.stop>
+            <div class="help-modal-head">
+                <h3>📘 2026 福建高考志愿雷达系统 - 使用指南</h3>
+                <button class="help-modal-close" @click="showHelpModal = false" title="关闭">✕</button>
+            </div>
+            <div class="help-modal-body">
+                <p><strong>核心逻辑:</strong>本系统基于"院校专业组"维度进行独立位次差计算,而非传统的院校平均分,能更精准地反映录取概率。</p>
+                <h4>1. 推荐列表解读</h4>
+                <ul>
+                    <li><span style="color:red">冲一冲</span>:录取概率较低,但值得尝试的院校。</li>
+                    <li><span style="color:green">稳一稳</span>:录取概率适中,匹配度最高的院校。</li>
+                    <li><span style="color:blue">保一保</span>:录取概率极高,作为兜底选择的院校。</li>
+                </ul>
+                <h4>2. 关键指标与徽标</h4>
+                <ul>
+                    <li><strong>🔥 热门徽标</strong>:表示该专业组内某专业的录取位次远超组平均位次,竞争极度激烈,系统已自动施加了概率惩罚。</li>
+                    <li><strong>🌊 密度徽标 (如 1.72x)</strong>:表示该专业组的局部竞争密度。数值越高,说明该组内高分考生扎堆越严重,落榜风险越大。</li>
+                    <li><strong>⚠️ 同校去重</strong>:为避免同一所学校占用过多名额,系统在"冲/稳/保"列表中限制了同一院校的显示数量。</li>
+                </ul>
+                <h4>3. 高级参数设置(齿轮图标)</h4>
+                <p>如果您觉得推荐结果过于激进或保守,可以调整以下参数:</p>
+                <ul>
+                    <li><strong>基准容量 (Base)</strong>:影响所有计算的基数,一般保持默认即可。</li>
+                    <li><strong>热门阈值 &amp; 惩罚</strong>:调低阈值会让更多专业组被判定为"热门",从而降低其推荐优先级。</li>
+                    <li><strong>密度阈值 &amp; 惩罚</strong>:调高密度容忍度,可以让一些虽然拥挤但分数匹配的院校出现在推荐列表中。</li>
+                </ul>
             </div>
         </div>
     </div>
@@ -6654,7 +6725,7 @@ new Vue({
         volunteerList: [],
         rankInterval: null,
         showParams: false,
-        params: { medianSameCount: 372, highDensityThresh: 2.0, lowDensityThresh: 0.5, baseRush: 5000, baseSafe: -3000, highExpand: 1.5, lowShrink: 0.7, highPenalty: 5 },
+        params: { medianSameCount: 372, highDensityThresh: 2.0, lowDensityThresh: 0.5, baseRush: 5000, baseSafe: -3000, highExpand: 1.5, lowShrink: 0.7, highPenalty: 5, groupEnrollBase: 30, groupHotRatioThresh: 1.3, groupHotPenalty: 8, intraGroupDensityThresh: 1.5, intraGroupPenalty: 7, intraGroupPenaltyMax: 15, perCollegeMaxRush: 2, perCollegeMaxStable: 2, perCollegeMaxSafe: 1 },
         defaultParams: {},
         adminYear: '2026',
         adminCategory: '物理类',
@@ -6664,6 +6735,7 @@ new Vue({
         showPreviewModal: false,
         showVolunteerModal: false,
         showDetailModal: false,
+        showHelpModal: false,
         currentDetailItem: null
     },
     computed: {
@@ -6835,7 +6907,16 @@ new Vue({
                     baseSafe: saved.baseSafe ?? (isPhysics ? -3000 : -130),
                     highExpand: saved.highExpand ?? 1.5,
                     lowShrink: saved.lowShrink ?? 0.7,
-                    highPenalty: saved.highPenalty ?? 5
+                    highPenalty: saved.highPenalty ?? 5,
+                    groupEnrollBase: saved.groupEnrollBase ?? 30,
+                    groupHotRatioThresh: saved.groupHotRatioThresh ?? 1.3,
+                    groupHotPenalty: saved.groupHotPenalty ?? 8,
+                    intraGroupDensityThresh: saved.intraGroupDensityThresh ?? 1.5,
+                    intraGroupPenalty: saved.intraGroupPenalty ?? 7,
+                    intraGroupPenaltyMax: saved.intraGroupPenaltyMax ?? 15,
+                    perCollegeMaxRush: saved.perCollegeMaxRush ?? 2,
+                    perCollegeMaxStable: saved.perCollegeMaxStable ?? 2,
+                    perCollegeMaxSafe: saved.perCollegeMaxSafe ?? 1
                 };
                 this.defaultParams = JSON.parse(JSON.stringify(this.params));
                 saveParamsToStorage(this.params, this.category);
@@ -6845,7 +6926,10 @@ new Vue({
                     highDensityThresh: 2.0, lowDensityThresh: 0.5,
                     baseRush: isPhysics ? 5000 : 170,
                     baseSafe: isPhysics ? -3000 : -130,
-                    highExpand: 1.5, lowShrink: 0.7, highPenalty: 5
+                    highExpand: 1.5, lowShrink: 0.7, highPenalty: 5,
+                    groupEnrollBase: 30, groupHotRatioThresh: 1.3, groupHotPenalty: 8,
+                    intraGroupDensityThresh: 1.5, intraGroupPenalty: 7, intraGroupPenaltyMax: 15,
+                    perCollegeMaxRush: 2, perCollegeMaxStable: 2, perCollegeMaxSafe: 1
                 };
                 this.defaultParams = JSON.parse(JSON.stringify(this.params));
             }
@@ -6874,7 +6958,10 @@ new Vue({
                 highDensityThresh: 2.0, lowDensityThresh: 0.5,
                 baseRush: 5000,
                 baseSafe: -3000,
-                highExpand: 1.5, lowShrink: 0.7, highPenalty: 5
+                highExpand: 1.5, lowShrink: 0.7, highPenalty: 5,
+                groupEnrollBase: 30, groupHotRatioThresh: 1.3, groupHotPenalty: 8,
+                intraGroupDensityThresh: 1.5, intraGroupPenalty: 7, intraGroupPenaltyMax: 15,
+                perCollegeMaxRush: 2, perCollegeMaxStable: 2, perCollegeMaxSafe: 1
             };
             this.defaultParams = JSON.parse(JSON.stringify(this.params));
             saveParamsToStorage(this.params, this.category);
@@ -7039,61 +7126,129 @@ new Vue({
                 baseRush = Math.floor(baseRush * this.params.lowShrink);
                 baseSafe = Math.floor(baseSafe * this.params.lowShrink);
             }
+            // === v2:同校聚合(为组级密度与配额去重做铺垫) ===
+            // 收集每个专业组的代表招生数(用最新年份的 enrollment,缺失则回退 groupEnrollBase)
+            let groupEnrollMap = {};
+            for (let [key, item] of combined.entries()) {
+                let enr = null;
+                for (let y of this.refYears) {
+                    let yd = item.yearData[y];
+                    if (yd && yd.enrollment) { enr = yd.enrollment; break; }
+                }
+                groupEnrollMap[key] = enr || this.params.groupEnrollBase;
+            }
+            // 聚合到院校
+            let perCollegeStats = {};
+            for (let [key, item] of combined.entries()) {
+                let c = item.college;
+                if (!perCollegeStats[c]) perCollegeStats[c] = { totalEnroll: 0, groupCount: 0, groupEnrolls: {} };
+                perCollegeStats[c].totalEnroll += groupEnrollMap[key];
+                perCollegeStats[c].groupCount += 1;
+                perCollegeStats[c].groupEnrolls[key] = groupEnrollMap[key];
+            }
+            for (let c in perCollegeStats) {
+                let s = perCollegeStats[c];
+                s.groupMeanEnr = s.groupCount > 0 ? s.totalEnroll / s.groupCount : this.params.groupEnrollBase;
+            }
+            // === v2:计算专业组级局部竞争密度 + 概率 ===
+            // 全科类同分均值(用于组内同分段对比)
+            let rankMap = storedRankTables[cat]?.['2026'] || {};
+            let allSameCounts = Object.values(rankMap).map(v => v.same_count || 0);
+            let allAvg = allSameCounts.length > 0 ? allSameCounts.reduce((a, b) => a + b, 0) / allSameCounts.length : 1;
             for (let [key, item] of combined.entries()) {
                 let ranks = [];
                 for (let y of this.refYears) if (item.yearData[y]) ranks.push(item.yearData[y].rank);
-                if (ranks.length===0) continue;
-                let avg = Math.round(ranks.reduce((a,b)=>a+b,0)/ranks.length);
+                if (ranks.length === 0) continue;
+                let avg = Math.round(ranks.reduce((a, b) => a + b, 0) / ranks.length);
                 let diff = userRank - avg;
                 let label, badge;
-                if (diff >= baseRush) { label='冲'; badge='badge-up'; }
-                else if (diff <= baseSafe) { label='保'; badge='badge-down'; }
-                else { label='稳'; badge='badge-stable'; }
-                let trendIcon='→', trendText='稳定', trendRisk='';
-                if (ranks.length>=2) {
-                    let first=ranks[0], last=ranks[ranks.length-1];
+                if (diff >= baseRush) { label = '冲'; badge = 'badge-up'; }
+                else if (diff <= baseSafe) { label = '保'; badge = 'badge-down'; }
+                else { label = '稳'; badge = 'badge-stable'; }
+                let trendIcon = '→', trendText = '稳定', trendRisk = '';
+                if (ranks.length >= 2) {
+                    let first = ranks[0], last = ranks[ranks.length - 1];
                     if (Math.abs(last - first) <= 300) {
-                        trendIcon='→'; trendText='几乎不变'; trendRisk='三年稳定，放心填报';
+                        trendIcon = '→'; trendText = '几乎不变'; trendRisk = '三年稳定，放心填报';
                     } else if (last < first) {
-                        trendIcon='↘️'; trendText='下降趋势'; trendRisk='捡漏机会，需了解原因';
+                        trendIcon = '↘️'; trendText = '下降趋势'; trendRisk = '捡漏机会，需了解原因';
                     } else {
-                        trendIcon='↗️'; trendText='上升趋势'; trendRisk='位次可能不稳，谨慎填报';
+                        trendIcon = '↗️'; trendText = '上升趋势'; trendRisk = '位次可能不稳，谨慎填报';
                     }
                 }
+                // 基础概率(沿用旧 3 段公式)
                 let prob = 50;
-                // 根据位次差计算基础概率
-                let range = baseRush - baseSafe; // 5000 - (-3000) = 8000
+                let range = baseRush - baseSafe;
                 if (diff <= baseSafe) {
-                    // 保：考生明显好于院校，概率 85-95%
                     let safeRatio = Math.min(1, Math.abs(diff) / range);
                     prob = 85 + Math.floor(safeRatio * 10);
                 } else if (diff >= baseRush) {
-                    // 冲：考生略差于院校，概率 10-35%
                     let rushRatio = Math.min(1, diff / range);
                     prob = 35 - Math.floor(rushRatio * 25);
                 } else {
-                    // 稳：考生与院校相当，概率 55-75%
                     let stableRatio = (diff - baseSafe) / range;
                     prob = 55 + Math.floor(stableRatio * 20);
                 }
-                // 密度调整
-                if (localDensity > this.params.highDensityThresh) {
-                    prob -= this.params.highPenalty;
-                } else if (localDensity < this.params.lowDensityThresh) {
-                    prob += 5;
+                // === v2:专业组级局部竞争密度 ===
+                let cStats = perCollegeStats[item.college];
+                let groupMeanSame = cStats.groupMeanEnr; // 组均招生作为组内"竞争分母"代理
+                let sameRatio = allAvg > 0 ? (sameCountForRank || allAvg) / allAvg : 1;
+                let capacityRatio = groupMeanSame > 0 ? groupMeanSame / groupEnrollMap[key] : 1;
+                let groupDensity = sameRatio * capacityRatio;
+                let hotRatio = groupMeanSame > 0 ? groupEnrollMap[key] / groupMeanSame : 1;
+                // === v2:密度 + 热门 双重惩罚 ===
+                let groupDensityPenalty = 0;
+                if (groupDensity > this.params.intraGroupDensityThresh) {
+                    let over = groupDensity - this.params.intraGroupDensityThresh;
+                    let headroom = Math.max(0, this.params.intraGroupPenaltyMax - this.params.intraGroupPenalty);
+                    groupDensityPenalty = this.params.intraGroupPenalty + Math.min(headroom, Math.floor(over * 5));
                 }
+                let hotPenalty = hotRatio > this.params.groupHotRatioThresh ? this.params.groupHotPenalty : 0;
+                // 旧:全科类密度调整(保留)
+                let globalPenalty = 0;
+                if (localDensity > this.params.highDensityThresh) {
+                    globalPenalty = -this.params.highPenalty;
+                } else if (localDensity < this.params.lowDensityThresh) {
+                    globalPenalty = 5;
+                }
+                prob = prob - groupDensityPenalty - hotPenalty + globalPenalty;
                 prob = Math.min(98, Math.max(5, prob));
                 results.push({
                     id: key, college: item.college, major: item.major, avgRank: avg, rankDiff: diff,
                     matchLabel: label, badgeClass: badge, trendIcon, trendText, trendRisk,
-                    yearData: item.yearData, probability: prob, showDetail: false
+                    yearData: item.yearData, probability: prob, showDetail: false,
+                    groupDensity: Number(groupDensity.toFixed(2)),
+                    hotRatio: Number(hotRatio.toFixed(2)),
+                    penaltyBreakdown: {
+                        base: 50 + (label === '冲' ? -15 : label === '稳' ? 15 : 35),
+                        groupDensity: -groupDensityPenalty,
+                        hotRatio: -hotPenalty,
+                        global: globalPenalty
+                    }
                 });
             }
-            results.sort((a,b)=>Math.abs(a.rankDiff)-Math.abs(b.rankDiff));
-            // 限制各类型数量
-            let rushList = results.filter(x=>x.matchLabel==='冲').slice(0, this.params.maxRush || 6);
-            let stableList = results.filter(x=>x.matchLabel==='稳').slice(0, this.params.maxStable || 4);
-            let safeList = results.filter(x=>x.matchLabel==='保').slice(0, this.params.maxSafe || 2);
+            // === v2:同校去重后再按类型切配额 ===
+            // 内部工具:在已按 |rankDiff| 排序的列表中,每个院校每类最多 K 个组,跨校维持原顺序
+            function trimByCollege(list, K) {
+                if (K <= 0) return [];
+                let buckets = new Map();
+                for (let x of list) {
+                    if (!buckets.has(x.college)) buckets.set(x.college, []);
+                    buckets.get(x.college).push(x);
+                }
+                let out = [];
+                for (let items of buckets.values()) {
+                    for (let i = 0; i < Math.min(K, items.length); i++) out.push(items[i]);
+                }
+                return out;
+            }
+            let sortedResults = results.slice().sort((a, b) => Math.abs(a.rankDiff) - Math.abs(b.rankDiff));
+            let rushList = trimByCollege(sortedResults.filter(x => x.matchLabel === '冲'), this.params.perCollegeMaxRush)
+                .slice(0, this.params.maxRush || 6);
+            let stableList = trimByCollege(sortedResults.filter(x => x.matchLabel === '稳'), this.params.perCollegeMaxStable)
+                .slice(0, this.params.maxStable || 4);
+            let safeList = trimByCollege(sortedResults.filter(x => x.matchLabel === '保'), this.params.perCollegeMaxSafe)
+                .slice(0, this.params.maxSafe || 2);
             this.collegesList = [...rushList, ...stableList, ...safeList];
             this.page = 1;
         },
@@ -7202,5 +7357,7 @@ new Vue({
         dataType() { this.showPreview = false; this.previewPage = 1; }
     }
 });
-</script></body>
+</script>
+<button class="help-btn" onclick="document.querySelector('#app').__vue__.showHelpModal = true" title="使用说明">?</button>
+</body>
 </html>
