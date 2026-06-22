@@ -82,7 +82,6 @@
         @keyframes float-up { from { opacity: 0; transform: translateY(36px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
         @keyframes badge-pop { 0% { transform: scale(0.6); opacity: 0; } 60% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }
-        @keyframes shine-sweep { from { transform: translateX(-120%) skewX(-20deg); } to { transform: translateX(220%) skewX(-20deg); } }
         @keyframes dot-blink { 0%,100% { opacity: 0.3; } 50% { opacity: 1; } }
 
         .hero-banner {
@@ -118,32 +117,6 @@
             backdrop-filter: blur(8px);
         }
         .hero-tag.hot { background: linear-gradient(135deg, #d97706, #b91c1c); border-color: transparent; font-weight: 600; }
-
-        .hero-cta {
-            margin-top: 20px;
-            display: inline-flex; align-items: center; gap: 10px;
-            padding: 11px 26px;
-            background: #fff;
-            color: #1e3c72;
-            border: none;
-            border-radius: 32px;
-            font-weight: 700;
-            cursor: pointer;
-            font-size: 0.92rem;
-            position: relative;
-            overflow: hidden;
-            animation: float-up 0.8s 0.45s ease-out both;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .hero-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 18px -6px rgba(0,0,0,0.3); }
-        .hero-cta::after {
-            content: '';
-            position: absolute;
-            top: 0; left: 0;
-            width: 40%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(30,60,114,0.18), transparent);
-            animation: shine-sweep 3.2s ease-in-out infinite;
-        }
 
         .radar-stage {
             position: relative;
@@ -377,9 +350,6 @@
                             <span class="hero-tag">📋 志愿表导出</span>
                             <span class="hero-tag">📁 CSV 数据导入</span>
                         </div>
-                        <button class="hero-cta" @click="document.querySelector('.form-grid button.btn-primary').click()">
-                            🚀 立即开始分析
-                        </button>
                     </div>
                     <div class="radar-stage">
                         <svg class="radar-svg" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
